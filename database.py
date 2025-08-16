@@ -65,6 +65,7 @@ def init_db() -> None:
     creating metadata.
     """
     # Import models so SQLModel.metadata is populated
-    import model  # noqa: F401
+    from route import model  # ✅ This matches your actual folder structure
+
 
     SQLModel.metadata.create_all(engine)

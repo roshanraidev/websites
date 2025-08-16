@@ -1,7 +1,3 @@
-"""
-Post CRUD router (file named blog.py but keeps API under /api/posts to match your admin).
-Saves covers under /uploads/posts/.
-"""
 from __future__ import annotations
 
 from datetime import datetime
@@ -15,9 +11,9 @@ from sqlmodel import Session, select
 
 from database import get_session
 from route.model import Category, Post
-from schema import PostRead  # using your single schemas file
+from schema import PostRead
 
-# uploads/(project root)/posts
+# uploads/posts/
 BASE_DIR = Path(__file__).resolve().parent.parent
 UPLOADS_DIR = BASE_DIR / "uploads" / "posts"
 UPLOADS_DIR.mkdir(parents=True, exist_ok=True)

@@ -1,7 +1,3 @@
-"""
-Category CRUD router (uses shared database.py & route.model).
-Saves thumbnails under /uploads/categories/.
-"""
 from __future__ import annotations
 
 from datetime import datetime
@@ -17,7 +13,7 @@ from database import get_session
 from route.model import Category, Post
 from schema import CategoryRead  # your single file schemas
 
-# uploads/ (project root)/categories
+# uploads/categories/
 BASE_DIR = Path(__file__).resolve().parent.parent
 UPLOADS_DIR = BASE_DIR / "uploads" / "categories"
 UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
