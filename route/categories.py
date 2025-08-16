@@ -10,7 +10,7 @@ from sqlmodel import Session, select
 
 from database import get_session
 from route.model import Category, Post
-from schema import CategoryRead  # your single file schemas
+from schema import CategoryRead
 
 # uploads/categories/
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -63,6 +63,9 @@ async def create_category(
     thumbnail: Optional[UploadFile] = File(None),
     session: Session = Depends(get_session),
 ):
+    if not name.strip():
+        raise HTTPException(status_code=400, detail="Category name is required")
+
     slug = slugify(name)
     exists = session.exec(select(Category).where(Category.slug == slug)).first()
     if exists:
@@ -88,7 +91,9 @@ async def update_category(
     if not cat:
         raise HTTPException(status_code=404, detail="Category not found")
 
-    if name:
+    if name is not None:
+        if not name.strip():
+            raise HTTPException(status_code=400, detail="Category name cannot be empty")
         new_slug = slugify(name)
         if new_slug != cat.slug:
             clash = session.exec(select(Category).where(Category.slug == new_slug)).first()
@@ -118,11 +123,10 @@ async def delete_category(cat_id: int, session: Session = Depends(get_session)):
     if not cat:
         raise HTTPException(status_code=404, detail="Category not found")
 
-    # block delete if posts exist
     linked = session.exec(select(Post).where(Post.category_id == cat_id)).first()
     if linked:
         raise HTTPException(status_code=400, detail="Cannot delete category with existing posts")
 
     session.delete(cat)
     session.commit()
-    return Response(status_code=204)  # ✅ Correct for no-content response
+    return Response(status_code=204)

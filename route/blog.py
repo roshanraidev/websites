@@ -76,9 +76,17 @@ async def create_post(
     thumbnail: Optional[UploadFile] = File(None),
     session: Session = Depends(get_session),
 ):
-    if category_id is not None:
-        if not session.get(Category, category_id):
-            raise HTTPException(status_code=400, detail="Invalid category_id")
+    if not title.strip():
+        raise HTTPException(status_code=400, detail="Title is required")
+
+    if content is None or not content.strip():
+        raise HTTPException(status_code=400, detail="Content is required")
+
+    if category_id is None:
+        raise HTTPException(status_code=400, detail="Category must be selected")
+
+    if not session.get(Category, category_id):
+        raise HTTPException(status_code=400, detail="Invalid category_id")
 
     slug = slugify(title)
     exists = session.exec(select(Post).where(Post.slug == slug)).first()
@@ -119,6 +127,8 @@ async def update_post(
         raise HTTPException(status_code=404, detail="Post not found")
 
     if title:
+        if not title.strip():
+            raise HTTPException(status_code=400, detail="Title cannot be empty")
         new_slug = slugify(title)
         if new_slug != post.slug:
             clash = session.exec(select(Post).where(Post.slug == new_slug)).first()
@@ -137,6 +147,8 @@ async def update_post(
     if excerpt is not None:
         post.excerpt = excerpt
     if content is not None:
+        if not content.strip():
+            raise HTTPException(status_code=400, detail="Content cannot be empty")
         post.content = content
     if read_time is not None:
         post.read_time = int(read_time)
@@ -160,4 +172,4 @@ async def delete_post(post_id: int, session: Session = Depends(get_session)):
         raise HTTPException(status_code=404, detail="Post not found")
     session.delete(post)
     session.commit()
-    return Response(status_code=204)  # ✅ Correct way for 204
+    return Response(status_code=204)  # ✅ No body for 204

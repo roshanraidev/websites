@@ -7,75 +7,364 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root{ --bg:#f6f7fb; --panel:#ffffff; --line:#e7e9f0; --muted:#6b7280; --text:#0f172a; --brand:#263785; --brand-2:#1e2d70; --radius:14px; --shadow:0 10px 30px rgba(0,0,0,.07); }
-    *{ box-sizing:border-box }
-    html,body{ height:100% }
-    body{ margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Arial; background:var(--bg); color:var(--text) }
-    h1,h2,h3{ margin:0 0 10px }
-    a{ color:inherit; text-decoration:none }
-    input,select,textarea{ width:100%; border:1px solid var(--line); border-radius:10px; background:#fff; color:inherit; padding:10px }
-    textarea{ min-height:180px; resize:vertical }
+<style>
+  :root {
+    --bg: #f6f7fb;
+    --panel: #ffffff;
+    --line: #e7e9f0;
+    --muted: #6b7280;
+    --text: #0f172a;
+    --brand: #263785;
+    --brand-2: #1e2d70;
+    --radius: 14px;
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
+  }
 
-    .app{ display:grid; grid-template-columns:260px 1fr; min-height:100vh }
-    @media(max-width:1024px){ .app{ grid-template-columns: 92px 1fr } .hide-sm{ display:none } }
+  * {
+    box-sizing: border-box;
+  }
 
-    /* Sidebar */
-    .sidebar{ background:linear-gradient(180deg,var(--brand),var(--brand-2)); color:#eaf0ff; position:sticky; top:0; height:100vh }
-    .side-head{ display:flex; align-items:center; gap:10px; padding:14px 14px; border-bottom:1px solid rgba(255,255,255,.08) }
-    .side-logo{ width:34px; height:34px; border-radius:8px; background:#fff }
-    .side-title{ font-weight:800; letter-spacing:.3px }
+  html, body {
+    height: 100%;
+    margin: 0;
+    font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 
-    .menu{ padding:8px 10px }
-    .menu h4{ margin:14px 10px 6px; font-size:12px; opacity:.85; font-weight:700 }
-    details.menu-group{ margin:6px 0; border-radius:10px }
-    details.menu-group summary{ list-style:none; cursor:pointer; padding:10px 12px; border-radius:10px }
-    details.menu-group[open] summary{ background:rgba(255,255,255,.08) }
-    details.menu-group > div{ padding:6px 0 8px 8px }
-    .sub{ display:block; padding:8px 12px; border-radius:8px; color:#e8ecff; opacity:.95; cursor:pointer }
-    .sub:hover{ background:rgba(255,255,255,.08) }
+  h1, h2, h3 {
+    margin: 0 0 10px;
+  }
 
-    /* Make sidebar items switch main panels (CSS only) */
-    .switch{ position:absolute; left:-9999px; top:-9999px }
-    .panel{ display:none }
-    #r-cat-create:checked ~ .content #panel-cat-create{ display:block }
-    #r-cat-list:checked   ~ .content #panel-cat-list{ display:block }
-    #r-blog-create:checked~ .content #panel-blog-create{ display:block }
-    #r-blog-list:checked  ~ .content #panel-blog-list{ display:block }
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
 
-    /* Main */
-    .main{ display:grid; grid-template-rows:64px 1fr }
-    .topbar{ display:flex; align-items:center; justify-content:space-between; background:#fff; border-bottom:1px solid var(--line); padding:0 16px; position:sticky; top:0; z-index:2 }
-    .search{ display:flex; align-items:center; gap:8px; background:#fff; border:1px solid var(--line); border-radius:12px; padding:8px 12px; min-width:260px }
-    .search input{ border:0; outline:0; padding:0 }
+  input, select, textarea {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #fff;
+    color: inherit;
+    padding: 10px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
 
-    .content{ padding:18px }
-    .card{ background:#fff; border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow) }
-    .pad{ padding:16px }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px rgba(38, 55, 133, 0.1);
+    outline: none;
+  }
 
-    .row{ display:flex; align-items:center; gap:10px }
-    .form-row{ display:grid; grid-template-columns:1fr 1fr; gap:14px }
-    @media(max-width:900px){ .form-row{ grid-template-columns:1fr } }
+  textarea {
+    min-height: 180px;
+    resize: vertical;
+  }
 
-    .btn{ display:inline-block; border:1px solid var(--line); border-radius:10px; padding:10px 12px; background:#fff; cursor:pointer }
-    .btn.primary{ background:#111827; color:#fff; border-color:#111827 }
-    .btn.ghost{ background:#fff }
-    .btn.danger{ color:#b91c1c; border-color:#ef4444 }
-    .table{ width:100%; border-collapse:collapse }
-    .table th,.table td{ padding:10px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top }
-    .pill{ display:inline-block; border:1px solid var(--line); border-radius:999px; padding:3px 8px; font-size:12px; color:var(--muted) }
+  .app {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: 100vh;
+    transition: all 0.3s ease;
+  }
 
-    /* Top-right profile uploader */
-    .profile-top{gap:12px}
-    .pf-avatar-top{width:38px;height:38px;border-radius:999px;border:2px dashed var(--line);display:grid;place-items:center;color:var(--muted);background:#fff;font-weight:700;font-size:12px;overflow:hidden}
-    .pf-avatar-top img{width:100%;height:100%;object-fit:cover;display:block}
-    .pf-input{display:none}
-    .pf-btn{border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:12px;background:#fff;cursor:pointer}
+  @media (max-width: 1024px) {
+    .app {
+      grid-template-columns: 72px 1fr;
+    }
+    .hide-sm {
+      display: none;
+    }
+  }
 
-    /* Toast */
-    .toast{position:fixed;right:16px;bottom:16px;background:#0f172a;color:#fff;padding:10px 12px;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.2);opacity:0;transform:translateY(8px);transition:.2s}
-    .toast.show{opacity:1;transform:translateY(0)}
-  </style>
+  /* Sidebar */
+  .sidebar {
+    background: linear-gradient(180deg, var(--brand), var(--brand-2));
+    color: #eaf0ff;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    width: 260px;
+    transition: width 0.3s ease;
+    z-index: 1000;
+  }
+
+  .sidebar.collapsed {
+    width: 72px;
+  }
+
+  .sidebar.collapsed .side-title,
+  .sidebar.collapsed .menu h4,
+  .sidebar.collapsed details.menu-group > div {
+    display: none;
+  }
+
+  .sidebar.collapsed summary {
+    padding-left: 14px;
+  }
+
+  .side-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .side-logo {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: #fff;
+  }
+
+  .side-title {
+    font-weight: 800;
+    letter-spacing: 0.3px;
+  }
+
+  .menu {
+    padding: 8px 10px;
+  }
+
+  .menu h4 {
+    margin: 14px 10px 6px;
+    font-size: 12px;
+    opacity: 0.85;
+    font-weight: 700;
+  }
+
+  details.menu-group {
+    margin: 6px 0;
+    border-radius: 10px;
+  }
+
+  details.menu-group summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 10px 12px;
+    border-radius: 10px;
+    transition: background 0.2s ease;
+  }
+
+  details.menu-group[open] summary {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  details.menu-group > div {
+    padding: 6px 0 8px 8px;
+  }
+
+  .sub {
+    display: block;
+    padding: 8px 12px;
+    border-radius: 8px;
+    color: #e8ecff;
+    opacity: 0.95;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+
+  .sub:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .switch {
+    position: absolute;
+    left: -9999px;
+    top: -9999px;
+  }
+
+  .panel {
+    display: none;
+  }
+
+  #r-cat-create:checked ~ .content #panel-cat-create { display: block; }
+  #r-cat-list:checked ~ .content #panel-cat-list { display: block; }
+  #r-blog-create:checked ~ .content #panel-blog-create { display: block; }
+  #r-blog-list:checked ~ .content #panel-blog-list { display: block; }
+
+  .main {
+    display: grid;
+    grid-template-rows: 64px 1fr;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #fff;
+    border-bottom: 1px solid var(--line);
+    padding: 0 16px;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+
+  .toggle-sidebar-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    width: 40px;
+    border: none;
+    background: none;
+    font-size: 24px;
+    color: var(--brand);
+    cursor: pointer;
+    transition: color 0.2s ease;
+  }
+
+  .toggle-sidebar-btn:hover {
+    color: var(--brand-2);
+  }
+
+  .search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 8px 12px;
+    min-width: 260px;
+  }
+
+  .search input {
+    border: 0;
+    outline: 0;
+    padding: 0;
+    background: transparent;
+  }
+
+  .content {
+    padding: 18px;
+  }
+
+  .card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+
+  .pad {
+    padding: 16px;
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  @media (max-width: 900px) {
+    .form-row {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .btn {
+    display: inline-block;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 12px;
+    background: #fff;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s, transform 0.1s ease;
+  }
+
+  .btn:hover {
+    background: #f0f2f5;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  .btn:active {
+    transform: scale(0.97);
+  }
+
+  .btn.primary {
+    background: #111827;
+    color: #fff;
+    border-color: #111827;
+  }
+
+  .btn.ghost {
+    background: #fff;
+  }
+
+  .btn.danger {
+    color: #b91c1c;
+    border-color: #ef4444;
+  }
+
+  .btn.info {
+    color: #2563eb;
+    border-color: #60a5fa;
+  }
+
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .table th,
+  .table td {
+    padding: 10px;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .pill {
+    display: inline-block;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 3px 8px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* Hide profile uploader */
+  .profile-top {
+    display: none !important;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    background: #0f172a;
+    color: #fff;
+    padding: 10px 12px;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    transform: translateY(8px);
+    transition: all 0.3s ease;
+    z-index: 9999;
+    max-width: 300px;
+    white-space: pre-wrap;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+</style>
+
+
+
 </head>
 <body>
   <div class="app">
@@ -223,75 +512,132 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
- <script>
-(function(){
-  if (window.AdminInit) return; window.AdminInit = true;
+<script>
+(function () {
+  if (window.AdminInit) return;
+  window.AdminInit = true;
 
   const API = '';
   const $ = s => document.querySelector(s);
-  const el = (tag, attrs={}) => { const n=document.createElement(tag); Object.entries(attrs).forEach(([k,v])=>{ if(k==='text') n.textContent=v; else if(k==='html') n.innerHTML=v; else n.setAttribute(k,v); }); return n; };
-  const toast = (msg) => { const t=$('#toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 1800); };
+  const el = (tag, attrs = {}) => {
+    const n = document.createElement(tag);
+    Object.entries(attrs).forEach(([k, v]) => {
+      if (k === 'text') n.textContent = v;
+      else if (k === 'html') n.innerHTML = v;
+      else n.setAttribute(k, v);
+    });
+    return n;
+  };
 
-  async function api(method, url, body, isForm){
+  const toast = (msg, duration = 2200) => {
+    const t = $('#toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), duration);
+  };
+
+  const typeWriter = (text, cb) => {
+    let i = 0, out = '';
+    const interval = setInterval(() => {
+      out += text.charAt(i++);
+      if (cb) cb(out);
+      if (i >= text.length) clearInterval(interval);
+    }, 15);
+  };
+
+  const modalConfirm = (msg) => {
+    return new Promise(resolve => {
+      if (confirm(msg)) resolve(true);
+      else resolve(false);
+    });
+  };
+
+  async function api(method, url, body, isForm) {
     const opts = { method };
-    if (body){
-      if (isForm){ opts.body = body; }
-      else { opts.headers = { 'Content-Type':'application/json' }; opts.body = JSON.stringify(body); }
+    if (body) {
+      if (isForm) {
+        opts.body = body;
+      } else {
+        opts.headers = { 'Content-Type': 'application/json' };
+        opts.body = JSON.stringify(body);
+      }
     }
-    const r = await fetch(API+url, opts);
-    if (!r.ok){ let m='Request failed'; try{ const j=await r.json(); m=j.detail||JSON.stringify(j); }catch{} throw new Error(m); }
-    const ct = r.headers.get('content-type')||''; return ct.includes('application/json') ? r.json() : r.text();
+    const r = await fetch(API + url, opts);
+    if (!r.ok) {
+      let m = 'Request failed';
+      try {
+        const j = await r.json();
+        m = j.detail || JSON.stringify(j);
+      } catch { }
+      throw new Error(m);
+    }
+    const ct = r.headers.get('content-type') || '';
+    return ct.includes('application/json') ? r.json() : r.text();
   }
 
-  async function upload(file, type){
-    if(!file) return null;
-    const fd=new FormData();
-    fd.append('type', type||'misc');
+  async function upload(file, type) {
+    if (!file) return null;
+    const fd = new FormData();
+    fd.append('type', type || 'misc');
     fd.append('file', file);
-    const res = await api('POST','/api/upload', fd, true);
+    const res = await api('POST', '/api/upload', fd, true);
     return res.url;
   }
 
-  // ------- Profile upload -------
+  // --- Profile Upload ---
   const pfFile = $('#pfFile');
   const pfAvatar = $('#pfAvatar');
-  pfFile && pfFile.addEventListener('change', async ()=>{
-    const f = pfFile.files[0]; if(!f) return;
-    try{ const url = await upload(f,'profile'); pfAvatar.innerHTML = '<img alt="pfp" src="'+url+'">'; toast('Profile uploaded'); }
-    catch(e){ toast(e.message); }
+  pfFile?.addEventListener('change', async () => {
+    const f = pfFile.files[0];
+    if (!f) return;
+    try {
+      const url = await upload(f, 'profile');
+      pfAvatar.innerHTML = `<img alt="pfp" src="${url}">`;
+      toast('Profile uploaded ✨');
+    } catch (e) {
+      toast(e.message);
+    }
   });
 
-  // ------- State -------
+  // --- State ---
   let editingCatId = null;
   let editingPostId = null;
   let categoriesCache = [];
 
-  // ------- Categories -------
+  // --- Category Form ---
   const catForm = $('#catCreateForm');
   const catCancelEdit = $('#catCancelEdit');
   const catTbody = $('#catTbody');
 
-  function resetCatForm(){ catForm.reset(); editingCatId=null; catCancelEdit.style.display='none'; }
+  function resetCatForm() {
+    catForm.reset();
+    editingCatId = null;
+    catCancelEdit.style.display = 'none';
+  }
 
-  async function loadCategories(q){
-    const qs = q ? ('?q='+encodeURIComponent(q)) : '';
-    const rows = await api('GET','/api/categories'+qs);
+  async function loadCategories(q) {
+    const qs = q ? `?q=${encodeURIComponent(q)}` : '';
+    const rows = await api('GET', '/api/categories' + qs);
     categoriesCache = rows;
     catTbody.innerHTML = '';
-    if (!rows.length){ catTbody.appendChild(el('tr',{html:'<td colspan="5" class="muted">No categories yet</td>'})); }
-    rows.forEach(c=>{
+    if (!rows.length) {
+      catTbody.appendChild(el('tr', { html: '<td colspan="5" class="muted">No categories yet</td>' }));
+    }
+    rows.forEach(c => {
       const tr = el('tr');
-      tr.appendChild(el('td',{text:c.name}));
-      tr.appendChild(el('td',{html:'<span class="pill">'+c.slug+'</span>'}));
-      tr.appendChild(el('td',{text:c.description||''}));
-      tr.appendChild(el('td',{html: c.thumbnail_url ? '<a href="'+c.thumbnail_url+'" target="_blank">thumb</a>' : '<span class="muted">—</span>' }));
+      tr.appendChild(el('td', { text: c.name }));
+      tr.appendChild(el('td', { html: `<span class="pill">${c.slug}</span>` }));
+      tr.appendChild(el('td', { text: c.description || '' }));
+      tr.appendChild(el('td', {
+        html: c.thumbnail_url ? `<a href="${c.thumbnail_url}" target="_blank">thumb</a>` : '<span class="muted">—</span>'
+      }));
       const tdA = el('td');
-      const btnV = el('button',{class:'btn info',text:'View',style:'margin-right:6px'});
-      const btnE = el('button',{class:'btn',text:'Edit'});
-      const btnD = el('button',{class:'btn danger',text:'Delete',style:'margin-left:6px'});
-      btnV.addEventListener('click',()=> viewCategory(c));
-      btnE.addEventListener('click',()=> startEditCategory(c));
-      btnD.addEventListener('click',()=> deleteCategory(c.id));
+      const btnV = el('button', { class: 'btn info', text: 'View' });
+      const btnE = el('button', { class: 'btn', text: 'Edit' });
+      const btnD = el('button', { class: 'btn danger', text: 'Delete' });
+      btnV.onclick = () => viewCategory(c);
+      btnE.onclick = () => startEditCategory(c);
+      btnD.onclick = () => deleteCategory(c.id);
       tdA.append(btnV, btnE, btnD);
       tr.appendChild(tdA);
       catTbody.appendChild(tr);
@@ -299,162 +645,215 @@
     fillCategorySelect();
   }
 
-  function fillCategorySelect(){
+  function fillCategorySelect() {
     const sel = $('#postCategory');
     if (!sel) return;
     const val = sel.value;
     sel.innerHTML = '<option value="">== Select Category ==</option>';
-    categoriesCache.forEach(c=> sel.appendChild(el('option',{value:String(c.id), text:c.name})) );
-    const opt = Array.from(sel.options).find(o=>o.value===val); if(opt) sel.value = val;
+    categoriesCache.forEach(c =>
+      sel.appendChild(el('option', { value: String(c.id), text: c.name }))
+    );
+    const opt = Array.from(sel.options).find(o => o.value === val);
+    if (opt) sel.value = val;
   }
 
-  function startEditCategory(c){
+  function startEditCategory(c) {
     $('#r-cat-create').checked = true;
-    $('#catName').value = c.name||'';
-    $('#catDesc').value = c.description||'';
+    $('#catName').value = c.name || '';
+    $('#catDesc').value = c.description || '';
     $('#catThumb').value = '';
     editingCatId = c.id;
     catCancelEdit.style.display = 'inline-block';
-    toast('Editing category: '+c.name);
+    toast(`Editing category: ${c.name}`);
   }
 
-  function viewCategory(c){
-    let msg = `Name: ${c.name}\nSlug: ${c.slug}\nDescription: ${c.description || '—'}\nCreated: ${c.created_at}`;
-    alert(msg);
+  function viewCategory(c) {
+    const msg = `Name: ${c.name}\nSlug: ${c.slug}\nDescription: ${c.description || '—'}\nCreated: ${c.created_at}`;
+    typeWriter(msg, txt => { toast(txt); });
   }
 
-  async function deleteCategory(id){
-    if(!confirm('Delete this category?')) return;
-    try{
-      await api('DELETE','/api/categories/'+id);
-      toast('Category deleted');
+  async function deleteCategory(id) {
+    if (!(await modalConfirm('Delete this category?'))) return;
+    try {
+      await api('DELETE', '/api/categories/' + id);
+      toast('Category deleted 🗑️');
       await loadCategories($('#q').value.trim());
-    }catch(e){ toast(e.message); }
+    } catch (e) {
+      toast(e.message);
+    }
   }
 
-  catCancelEdit && catCancelEdit.addEventListener('click',()=> resetCatForm());
+  catCancelEdit?.addEventListener('click', () => resetCatForm());
 
-  catForm && catForm.addEventListener('submit', async (e)=>{
+  catForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const name = $('#catName').value.trim();
     const description = $('#catDesc').value.trim();
-    const file = $('#catThumb').files[0]||null;
-    if(!name) return toast('Name is required');
-    try{
+    const file = $('#catThumb').files[0] || null;
+    if (!name) return toast('Name is required ⚠️');
+    try {
       const fd = new FormData();
       fd.append('name', name);
       if (description) fd.append('description', description);
       if (file) fd.append('thumbnail', file);
-      if (editingCatId){ await api('PUT','/api/categories/'+editingCatId, fd, true); toast('Category updated'); }
-      else { await api('POST','/api/categories', fd, true); toast('Category created'); }
-      resetCatForm(); await loadCategories($('#q').value.trim());
-    }catch(err){ toast(err.message); }
+      if (editingCatId) {
+        await api('PUT', '/api/categories/' + editingCatId, fd, true);
+        toast('Category updated ✅');
+      } else {
+        await api('POST', '/api/categories', fd, true);
+        toast('Category created 🎉');
+      }
+      resetCatForm();
+      await loadCategories($('#q').value.trim());
+    } catch (err) {
+      toast(err.message);
+    }
   });
 
-  // ------- Posts -------
+  // --- Blog Posts ---
   const postForm = $('#postCreateForm');
   const postCancelEdit = $('#postCancelEdit');
   const postTbody = $('#postTbody');
 
-  function resetPostForm(){ postForm.reset(); editingPostId=null; $('#postRead').value = 5; postCancelEdit.style.display='none'; fillCategorySelect(); }
+  function resetPostForm() {
+    postForm.reset();
+    editingPostId = null;
+    $('#postRead').value = 5;
+    postCancelEdit.style.display = 'none';
+    fillCategorySelect();
+  }
 
-  async function loadPosts(q){
-    const qs = q ? ('?q='+encodeURIComponent(q)) : '';
-    const rows = await api('GET','/api/posts'+qs);
+  async function loadPosts(q) {
+    const qs = q ? `?q=${encodeURIComponent(q)}` : '';
+    const rows = await api('GET', '/api/posts' + qs);
     postTbody.innerHTML = '';
-    if (!rows.length){ postTbody.appendChild(el('tr',{html:'<td colspan="5" class="muted">No posts yet</td>'})); }
-    rows.forEach(p=>{
+    if (!rows.length) {
+      postTbody.appendChild(el('tr', { html: '<td colspan="5" class="muted">No posts yet</td>' }));
+    }
+    rows.forEach(p => {
       const tr = el('tr');
-      tr.appendChild(el('td',{text:p.title}));
-      const catName = (categoriesCache.find(c=> String(c.id)===String(p.category_id))||{}).name || '—';
-      tr.appendChild(el('td',{text:catName}));
-      tr.appendChild(el('td',{html:'<span class="pill">'+(p.status||'active')+'</span>'}));
-      tr.appendChild(el('td',{html: p.cover_url ? '<a href="'+p.cover_url+'" target="_blank">cover</a>' : '<span class="muted">—</span>' }));
+      tr.appendChild(el('td', { text: p.title }));
+      const catName = (categoriesCache.find(c => String(c.id) === String(p.category_id)) || {}).name || '—';
+      tr.appendChild(el('td', { text: catName }));
+      tr.appendChild(el('td', { html: `<span class="pill">${p.status || 'active'}</span>` }));
+      tr.appendChild(el('td', {
+        html: p.cover_url ? `<a href="${p.cover_url}" target="_blank">cover</a>` : '<span class="muted">—</span>'
+      }));
       const tdA = el('td');
-      const btnV = el('button',{class:'btn info',text:'View',style:'margin-right:6px'});
-      const btnE = el('button',{class:'btn',text:'Edit'});
-      const btnD = el('button',{class:'btn danger',text:'Delete',style:'margin-left:6px'});
-      btnV.addEventListener('click',()=> viewPost(p));
-      btnE.addEventListener('click',()=> startEditPost(p));
-      btnD.addEventListener('click',()=> deletePost(p.id));
+      const btnV = el('button', { class: 'btn info', text: 'View' });
+      const btnE = el('button', { class: 'btn', text: 'Edit' });
+      const btnD = el('button', { class: 'btn danger', text: 'Delete' });
+      btnV.onclick = () => viewPost(p);
+      btnE.onclick = () => startEditPost(p);
+      btnD.onclick = () => deletePost(p.id);
       tdA.append(btnV, btnE, btnD);
       tr.appendChild(tdA);
       postTbody.appendChild(tr);
     });
   }
 
-  function viewPost(p){
-    const catName = (categoriesCache.find(c=> String(c.id)===String(p.category_id))||{}).name || '—';
-    let msg = `Title: ${p.title}
-Category: ${catName}
-Excerpt: ${p.excerpt || '—'}
-Content: ${p.content || '—'}
-Status: ${p.status}
-Read Time: ${p.read_time} min
-Created: ${p.created_at}`;
-    alert(msg);
+  function viewPost(p) {
+    const catName = (categoriesCache.find(c => String(c.id) === String(p.category_id)) || {}).name || '—';
+    const msg = `📝 ${p.title}
+📁 ${catName}
+📌 ${p.excerpt || '—'}
+📄 ${p.content || '—'}
+📊 ${p.status} | ⏱️ ${p.read_time} min
+📅 ${p.created_at}`;
+    typeWriter(msg, t => toast(t, 2600));
   }
 
-  function startEditPost(p){
+  function startEditPost(p) {
     $('#r-blog-create').checked = true;
-    $('#postTitle').value = p.title||'';
-    $('#postExcerpt').value = p.excerpt||'';
-    $('#postContent').value = p.content||'';
-    $('#postStatus').value = p.status||'active';
-    $('#postRead').value = p.read_time||5;
+    $('#postTitle').value = p.title || '';
+    $('#postExcerpt').value = p.excerpt || '';
+    $('#postContent').value = p.content || '';
+    $('#postStatus').value = p.status || 'active';
+    $('#postRead').value = p.read_time || 5;
     $('#postThumb').value = '';
     $('#postCategory').value = p.category_id ? String(p.category_id) : '';
     editingPostId = p.id;
-    postCancelEdit.style.display='inline-block';
-    toast('Editing post: '+p.title);
+    postCancelEdit.style.display = 'inline-block';
+    toast(`Editing post: ${p.title}`);
   }
 
-  async function deletePost(id){
-    if(!confirm('Delete this post?')) return;
-    try{
-      await api('DELETE','/api/posts/'+id);
-      toast('Post deleted');
+  async function deletePost(id) {
+    if (!(await modalConfirm('Delete this post?'))) return;
+    try {
+      await api('DELETE', '/api/posts/' + id);
+      toast('Post deleted 🗑️');
       await loadPosts($('#q').value.trim());
-    }catch(e){ toast(e.message); }
+    } catch (e) {
+      toast(e.message);
+    }
   }
 
-  postCancelEdit && postCancelEdit.addEventListener('click',()=> resetPostForm());
+  postCancelEdit?.addEventListener('click', () => resetPostForm());
 
-  postForm && postForm.addEventListener('submit', async (e)=>{
+  postForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const title = $('#postTitle').value.trim();
-    const excerpt = $('#postExcerpt') ? $('#postExcerpt').value.trim() : '';
+    const excerpt = $('#postExcerpt')?.value.trim() || '';
     const content = $('#postContent').value.trim();
     const status = $('#postStatus').value;
-    const read_time = Number($('#postRead').value||5);
+    const read_time = Number($('#postRead').value || 5);
     const category_id = $('#postCategory').value ? Number($('#postCategory').value) : '';
-    const file = $('#postThumb').files[0]||null;
-    if(!title) return toast('Title is required');
-    try{
+    const file = $('#postThumb').files[0] || null;
+
+    if (!title) return toast('Title is required ⚠️');
+    if (!category_id) return toast('Please select a category 📂');
+    if (!content) return toast('Content is required 📝');
+
+    try {
       const fd = new FormData();
       fd.append('title', title);
       if (excerpt) fd.append('excerpt', excerpt);
       if (content) fd.append('content', content);
       fd.append('status', status);
-      fd.append('read_time', String(read_time||5));
-      if (category_id!=='') fd.append('category_id', String(category_id));
+      fd.append('read_time', String(read_time || 5));
+      if (category_id !== '') fd.append('category_id', String(category_id));
       if (file) fd.append('thumbnail', file);
-      if (editingPostId){ await api('PUT','/api/posts/'+editingPostId, fd, true); toast('Post updated'); }
-      else { await api('POST','/api/posts', fd, true); toast('Post created'); }
-      resetPostForm(); await Promise.all([loadCategories($('#q').value.trim()), loadPosts($('#q').value.trim())]);
-    }catch(err){ toast(err.message); }
+      if (editingPostId) {
+        await api('PUT', '/api/posts/' + editingPostId, fd, true);
+        toast('Post updated ✅');
+      } else {
+        await api('POST', '/api/posts', fd, true);
+        toast('Post created ✨');
+      }
+      resetPostForm();
+      await Promise.all([
+        loadCategories($('#q').value.trim()),
+        loadPosts($('#q').value.trim())
+      ]);
+    } catch (err) {
+      toast(err.message);
+    }
   });
 
   const q = $('#q');
-  function runSearch(){ const v=q.value.trim(); loadCategories(v); loadPosts(v); }
-  q && q.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ runSearch(); }});
+  q?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      const v = q.value.trim();
+      loadCategories(v);
+      loadPosts(v);
+    }
+  });
 
-  (async function init(){
-    try{ await loadCategories(); await loadPosts(); toast('Connected'); }
-    catch(e){ toast('API error: '+e.message); }
+  (async function init() {
+    try {
+      await loadCategories();
+      await loadPosts();
+      toast('🎯 Connected to API');
+    } catch (e) {
+      toast('🚫 API error: ' + e.message);
+    }
   })();
 })();
+
+
 </script>
+
+
 
 </body>
 </html>
