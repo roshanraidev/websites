@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wow Blog – Single Post</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#fafafa;--panel:#fff;--line:#e6e6eb;--text:#121212;--muted:#6b7280;--brand:#5b6cff;--brand-2:#a855f7;--radius:16px;--shadow:0 10px 30px rgba(0,0,0,.06)}
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;background:linear-gradient(#fff,var(--bg));color:var(--text)}
+    a{color:inherit;text-decoration:none}
+    img{display:block;max-width:100%}
+    .container{max-width:1200px;margin:0 auto;padding:0 20px}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .button{background:var(--brand);color:#fff;border:0;padding:10px 16px;border-radius:12px;font-weight:600;cursor:pointer}
+    .button.outline{background:#fff;color:var(--text);border:1px solid var(--line)}
+
+    /* Header */
+    header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.85);backdrop-filter:saturate(180%) blur(8px);border-bottom:1px solid var(--line)}
+    .nav{display:flex;align-items:center;justify-content:space-between;height:64px}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:700}
+    .logo{width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,var(--brand),var(--brand-2))}
+    .links{display:flex;gap:28px;align-items:center}
+    .links a{font-size:14px;color:#1f2937}
+    .links a:hover{color:#111827}
+    .nav-btn{display:inline-flex;align-items:center;gap:6px;background:none;border:0;font:inherit;color:#1f2937;cursor:pointer}
+    .nav-btn:hover{color:#111827}
+
+    /* Dropdowns */
+    .dropdown{position:relative}
+    .menu{position:absolute;top:calc(100% + 10px);left:0;min-width:220px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:8px;opacity:0;transform:scale(.98);pointer-events:none;transition:opacity .15s ease,transform .15s ease}
+    .menu a{display:flex;align-items:center;gap:8px;padding:10px;border-radius:8px;font-size:14px;color:#111827}
+    .menu a:hover{background:#f6f7fb}
+    .dropdown.open>.menu{opacity:1;transform:scale(1);pointer-events:auto}
+    .caret{display:inline-block;width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid currentColor;transform-origin:center;transition:transform .15s}
+    .dropdown.open .caret{transform:rotate(180deg)}
+    @media(hover:hover){.dropdown:hover>.menu{opacity:1;transform:scale(1);pointer-events:auto}.dropdown:hover .caret{transform:rotate(180deg)}}
+
+    .search{display:flex;gap:8px;align-items:center}
+    .search input{height:36px;padding:0 10px;border-radius:10px;border:1px solid var(--line)}
+    .menu-btn{display:none}
+
+    /* Layout */
+    main{padding:32px 0}
+    .grid{display:grid;gap:28px}
+    .page{grid-template-columns:1fr}
+    @media(min-width:1024px){.page{grid-template-columns:3fr 1fr}}
+    .list{list-style:none;margin:0;padding:0}
+    .list li{display:flex;justify-content:space-between;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)}
+    .list li a{font-size:14px;font-weight:600}
+    .list li span{font-size:12px;color:var(--muted)}
+
+    /* Article */
+    .article{padding:26px}
+    .article h1{margin:0 0 10px;font-size:28px;line-height:1.2}
+    .article .byline{margin-top:18px;color:var(--muted);font-style:italic;text-align:center}
+    .content{max-width:70ch;margin:0 auto}
+    .content p{line-height:1.7;color:#222}
+    .float-img{float:right;width:240px;margin:6px 0 12px 18px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+    @media(max-width:900px){.float-img{float:none;width:100%;margin:10px 0}}
+
+    /* Related cards under article */
+    .cards{display:grid;gap:18px;grid-template-columns:repeat(1,minmax(0,1fr))}
+    @media(min-width:700px){.cards{grid-template-columns:repeat(3,1fr)}}
+    .post{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff}
+    .post .thumb{aspect-ratio:16/10;overflow:hidden;border-bottom:1px solid var(--line)}
+    .post .thumb img{width:100%;height:100%;object-fit:cover}
+    .post .body{padding:12px 14px}
+    .post h3{margin:0 0 6px;font-size:16px}
+    .post p{margin:0;color:var(--muted);font-size:14px}
+
+    /* Feature author/bio */
+    .feature{display:grid;grid-template-columns:2fr 1fr;gap:24px;padding:26px}
+    .feature p{color:var(--muted)}
+    .portrait{width:100%;max-width:260px;margin-left:auto;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+    @media(max-width:900px){.feature{grid-template-columns:1fr}.portrait{margin:0}}
+
+    /* Sidebar */
+    aside .panel{position:sticky;top:96px}
+
+    /* Footer */
+    footer{border-top:1px solid var(--line);background:#fff;margin-top:44px}
+    .foot{display:grid;gap:24px;grid-template-columns:1fr}
+    @media(min-width:768px){.foot{grid-template-columns:1fr 2fr}}
+    .cols{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+    @media(min-width:640px){.cols{grid-template-columns:repeat(4,1fr)}}
+    .cols h4{margin:0;font-size:14px}
+    .cols ul{list-style:none;margin:10px 0 0;padding:0}
+    .cols li{margin:6px 0}
+    .muted{color:var(--muted)}
+
+    /* Mobile nav */
+    @media(max-width:960px){
+      .links{display:none}
+      .menu-btn{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:#fff}
+      .mobile-menu{display:none;border-top:1px solid var(--line)}
+      .mobile-menu.open{display:block}
+      .mobile-menu a, .mobile-menu button{display:block;padding:12px 4px;width:100%;text-align:left;background:none;border:0;font:inherit;cursor:pointer}
+      .mobile-sub{display:none;padding-left:12px}
+      .mobile-sub.open{display:block}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container nav">
+      <div class="brand"><div class="logo"></div><span>YourLogo</span></div>
+      <nav class="links" aria-label="Primary">
+        <a href="index.html">Home</a>
+        <!-- Blog dropdown -->
+        <div class="dropdown" id="dd-blog">
+          <button class="nav-btn" aria-expanded="false" aria-haspopup="true">Blog <span class="caret"></span></button>
+          <div class="menu" role="menu" aria-label="Blog">
+            <a href="#blog-latest">Latest posts</a>
+            <a href="#blog-popular">Most popular</a>
+            <a href="#blog-news">News & updates</a>
+            <a href="#blog-tutorials">Tutorials</a>
+          </div>
+        </div>
+        <!-- Category dropdown -->
+        <div class="dropdown" id="dd-cat">
+          <button class="nav-btn" aria-expanded="false" aria-haspopup="true">Category <span class="caret"></span></button>
+          <div class="menu" role="menu" aria-label="Categories">
+            <a href="#uiux">UI/UX</a>
+            <a href="#frontend">Frontend</a>
+            <a href="#content">Content Strategy</a>
+            <a href="#systems">Design Systems</a>
+          </div>
+        </div>
+        <a href="#">Contact</a>
+      </nav>
+      <div class="search">
+        <input aria-label="Search" placeholder="Search…" />
+        <button class="button">Search</button>
+        <button class="menu-btn" id="menuBtn" aria-label="Open menu">≡</button>
+      </div>
+    </div>
+    <!-- Mobile menu with submenus -->
+
+
+  </header>
+
+  <main class="container">
+    <section class="grid page">
+      <!-- Article -->
+      <article class="card article">
+        <div class="content">
+          <h1>Title of the blog post that pulls you in</h1>
+          <figure class="float-img">
+            <img src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1600&auto=format&fit=crop" alt="Inline visual" />
+          </figure>
+          <p>Intro paragraph sets the scene with crisp writing. It tells the reader what they’ll get and why they should care, in simple terms.</p>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere, risus non faucibus posuere, nibh ipsum dictum lectus, sed eleifend ipsum velit vitae arcu. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.</p>
+          <p>Suspendisse potenti. <strong>SADSADSADS</strong> adasda — vivamus maximus, arcu vitae interdum porttitor, mauris justo bibendum leo, in pharetra lorem velit et tortor. Donec nec gravida dui. Mauris sodales sem a gravida viverra.</p>
+          <p>Curabitur accumsan, massa in posuere imperdiet, mi velit ullamcorper mi, vel laoreet dui nibh quis orci. Aenean luctus, neque id blandit consequat, neque augue viverra lacus, sed dignissim mi nisl quis erat.</p>
+          <p>Quisque interdum, lacus ac pulvinar lacinia, erat libero sagittis ante, in efficitur nisi odio sit amet est. Sed a ante sed justo consectetur ultricies. Vivamus quis placerat nibh, vitae dictum neque.</p>
+          <div class="byline">Written by <a href="#">@you</a></div>
+        </div>
+      </article>
+
+      <!-- Sidebar -->
+      <aside>
+        <div class="card panel">
+          <div style="padding:16px;border-bottom:1px solid var(--line);background:#fafafa">
+            <div style="font-weight:700">Recommended posts</div>
+          </div>
+          <ul class="list">
+            <li><a href="#">How to design cards that convert</a><span>7 min</span></li>
+            <li><a href="#">Microcopy that actually helps</a><span>5 min</span></li>
+            <li><a href="#">Color systems that scale</a><span>8 min</span></li>
+            <li><a href="#">Accessibility quick wins</a><span>6 min</span></li>
+          </ul>
+        </div>
+      </aside>
+    </section>
+
+    <!-- Related posts -->
+    <section style="margin-top:26px">
+      <h2 style="font-size:18px;margin:0 0 12px">Related posts</h2>
+      <div class="cards">
+        <article class="post">
+          <div class="thumb"><img src="https://images.unsplash.com/photo-1515879218367-8466d910aaa4?q=80&w=1200&auto=format&fit=crop" alt="Blog1"></div>
+          <div class="body"><h3>Blog 1</h3><p>Short teaser for the article.</p></div>
+        </article>
+        <article class="post">
+          <div class="thumb"><img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1200&auto=format&fit=crop" alt="Blog2"></div>
+          <div class="body"><h3>Blog 2</h3><p>Short teaser for the article.</p></div>
+        </article>
+        <article class="post">
+          <div class="thumb"><img src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1200&auto=format&fit=crop" alt="Blog3"></div>
+          <div class="body"><h3>Blog 3</h3><p>Short teaser for the article.</p></div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Author feature / about -->
+    <section class="card feature" style="margin-top:28px">
+      <div>
+        <h3 style="margin:0 0 8px;font-size:22px">Designer and content creator</h3>
+        <p>I craft interfaces and words that work together. From wireframes to web copy, I help teams build digital experiences that feel effortless.</p>
+        <div style="display:flex;gap:10px;margin-top:14px">
+          <button class="button">Work with me</button>
+          <button class="button outline">Portfolio →</button>
+        </div>
+      </div>
+      <div class="portrait">
+        <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1200&auto=format&fit=crop" alt="Author portrait" />
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container" style="padding:28px 20px 36px">
+      <div class="foot">
+        <div>
+          <div class="brand"><div class="logo"></div><span>YourLogo</span></div>
+          <p class="muted" style="margin-top:10px;max-width:42ch">A modern blog template focused on clarity, craft, and performance.</p>
+        </div>
+        <div>
+          <div class="cols">
+            <div>
+              <h4>Explore</h4>
+              <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="#">Blog</a></li>
+                <li><a href="#">Categories</a></li>
+                <li><a href="#">Contact</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4>Resources</h4>
+              <ul>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Licensing</a></li>
+                <li><a href="#">RSS</a></li>
+                <li><a href="#">Sitemap</a></li>
+              </ul>
+            </div>
+            <div style="grid-column:span 2">
+              <h4>Stay in the loop</h4>
+              <p class="muted" style="margin:10px 0 8px">Get fresh posts once a week. No spam, ever.</p>
+              <div style="display:flex;gap:8px;max-width:420px">
+                <input placeholder="Your email" aria-label="Email" style="flex:1;height:40px;border:1px solid var(--line);border-radius:10px;padding:0 10px" />
+                <button class="button" style="height:40px">Subscribe</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="muted" style="margin-top:18px;font-size:12px">© <span id="year"></span> Wow Blog. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <script>
+    // Mobile menu button
+    const btn=document.getElementById('menuBtn');
+    const menu=document.getElementById('mobileMenu');
+    btn && btn.addEventListener('click',()=>menu.classList.toggle('open'));
+
+    // Dynamic year
+    document.getElementById('year').textContent=new Date().getFullYear();
+
+    // Desktop dropdown toggles (click + outside + Esc)
+    const dropdowns=document.querySelectorAll('.dropdown');
+    dropdowns.forEach(dd=>{
+      const b=dd.querySelector('button');
+      b.addEventListener('click',(e)=>{
+        e.stopPropagation();
+        dropdowns.forEach(o=>{ if(o!==dd){ o.classList.remove('open'); o.querySelector('button').setAttribute('aria-expanded','false'); }});
+        dd.classList.toggle('open');
+        b.setAttribute('aria-expanded',dd.classList.contains('open'));
+      });
+    });
+    document.addEventListener('click',()=>{
+      dropdowns.forEach(dd=>{ dd.classList.remove('open'); dd.querySelector('button').setAttribute('aria-expanded','false'); });
+    });
+    document.addEventListener('keydown',(e)=>{
+      if(e.key==='Escape'){
+        dropdowns.forEach(dd=>{ dd.classList.remove('open'); dd.querySelector('button').setAttribute('aria-expanded','false'); });
+      }
+    });
+
+    // Mobile submenu toggles
+    document.querySelectorAll('.js-mobile-toggle').forEach(t=>{
+      t.addEventListener('click',()=>{
+        const target=document.querySelector(t.dataset.target);
+        target.classList.toggle('open');
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wow Blog UI – Vanilla HTML/CSS/JS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg: #fafafa;
+      --panel: #ffffff;
+      --line: #e6e6eb;
+      --text: #121212;
+      --muted: #6b7280;
+      --brand: #5b6cff; /* indigo-ish */
+      --brand-2: #a855f7; /* purple */
+      --radius: 16px;
+      --shadow: 0 10px 30px rgba(0,0,0,.06);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Noto Sans","Apple Color Emoji","Segoe UI Emoji";
+      background: linear-gradient(#fff, var(--bg)); color:var(--text);
+    }
+    a{color:inherit; text-decoration:none}
+    img{display:block; max-width:100%}
+
+    /* Layout helpers */
+    .container{max-width:1200px; margin:0 auto; padding:0 20px}
+    .button{background:var(--brand); color:#fff; border:0; padding:12px 18px; border-radius:14px; font-weight:600; cursor:pointer}
+    .button.outline{background:#fff; color:var(--text); border:1px solid var(--line)}
+    .badge{display:inline-block; padding:6px 10px; background:#f4f4f6; border:1px solid var(--line); border-radius:999px; font-size:12px}
+    .card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow)}
+
+    /* Header */
+    header{position:sticky; top:0; z-index:50; background:rgba(255,255,255,.85); backdrop-filter:saturate(180%) blur(8px); border-bottom:1px solid var(--line)}
+    .nav{display:flex; align-items:center; justify-content:space-between; height:64px}
+    .brand{display:flex; align-items:center; gap:10px; font-weight:700}
+    .logo{width:36px; height:36px; border-radius:12px; background:linear-gradient(135deg,var(--brand),var(--brand-2));}
+    .links{display:flex; gap:28px; align-items:center}
+    .links a{font-size:14px; color:#1f2937}
+    .links a:hover{color:#111827}
+    .nav-btn{display:inline-flex; align-items:center; gap:6px; font-size:14px; color:#1f2937; background:transparent; border:0; cursor:pointer}
+    .nav-btn:hover{color:#111827}
+
+    /* Dropdowns */
+    .dropdown{position:relative}
+    .menu{position:absolute; top:calc(100% + 10px); left:0; min-width:220px; background:#fff; border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow); padding:8px; opacity:0; transform:scale(.98); pointer-events:none; transition:opacity .15s ease, transform .15s ease}
+    .menu a{display:flex; align-items:center; gap:8px; padding:10px 10px; border-radius:8px; font-size:14px; color:#111827}
+    .menu a:hover{background:#f6f7fb}
+    .dropdown.open > .menu{opacity:1; transform:scale(1); pointer-events:auto}
+    .caret{display:inline-block; width:0; height:0; border-left:4px solid transparent; border-right:4px solid transparent; border-top:5px solid currentColor; transform-origin:center; transition:transform .15s}
+    .dropdown.open .caret{transform:rotate(180deg)}
+
+    /* Enable hover open for pointer devices */
+    @media (hover:hover){
+      .dropdown:hover > .menu{opacity:1; transform:scale(1); pointer-events:auto}
+      .dropdown:hover .caret{transform:rotate(180deg)}
+    }
+
+    .search{display:flex; gap:8px; align-items:center}
+    .search input{height:36px; padding:0 10px; border-radius:10px; border:1px solid var(--line)}
+    .menu-btn{display:none}
+
+    /* Hero */
+    .hero{position:relative; overflow:hidden; border-radius:24px; border:1px solid var(--line); background:var(--panel); box-shadow:var(--shadow)}
+    .hero::before{content:""; position:absolute; inset:-20% -10% auto -10%; height:320px; background:
+      radial-gradient(600px 260px at 80% -20%, rgba(168,85,247,.18), transparent),
+      radial-gradient(420px 240px at 0% 120%, rgba(59,130,246,.15), transparent);
+      pointer-events:none}
+    .hero-grid{display:grid; grid-template-columns:2fr 1fr; gap:28px; padding:28px}
+    .hero h1{margin:0; font-size:clamp(28px, 4vw, 40px)}
+    .hero p{color:var(--muted); max-width:60ch}
+    .hero-figure{border-radius:18px; overflow:hidden; border:1px solid var(--line); background:#f3f4f6}
+
+    /* Main grid */
+    .main{display:grid; grid-template-columns: 1fr; gap:28px; margin-top:28px}
+    @media (min-width: 1024px){ .main{ grid-template-columns: 3fr 1fr; } }
+
+    /* Cards grid */
+    .grid{display:grid; gap:18px}
+    .grid.cards{ grid-template-columns:repeat(1,minmax(0,1fr)) }
+    @media (min-width:640px){ .grid.cards{ grid-template-columns:repeat(2,1fr) } }
+    @media (min-width:1024px){ .grid.cards{ grid-template-columns:repeat(3,1fr) } }
+    .post .meta{display:flex; justify-content:space-between; gap:10px; color:#6b7280; font-size:12px}
+    .post .thumb{aspect-ratio:16/10; overflow:hidden; border-bottom:1px solid var(--line)}
+    .post .thumb img{width:100%; height:100%; object-fit:cover; transition:transform .35s ease}
+    .post:hover .thumb img{transform:scale(1.04)}
+    .post .body{padding:14px 16px 16px}
+    .post h3{margin:0 0 6px; font-size:16px}
+    .post p{margin:0 0 10px; font-size:14px; color:var(--muted)}
+
+    /* Sidebar */
+    aside .panel{position:sticky; top:96px}
+    .list{list-style:none; margin:0; padding:0}
+    .list li{display:flex; justify-content:space-between; gap:10px; padding:14px 16px; border-bottom:1px solid var(--line)}
+    .list li a{font-size:14px; font-weight:600}
+    .list li span{font-size:12px; color:var(--muted)}
+
+    /* Feature block */
+    .feature{display:grid; grid-template-columns:2fr 1fr; gap:24px; padding:26px}
+    .feature p{color:var(--muted); max-width:65ch}
+    .feature .portrait{width:100%; max-width:320px; margin-left:auto; border:1px solid var(--line); border-radius:18px; overflow:hidden}
+
+    /* Footer */
+    footer{border-top:1px solid var(--line); background:#fff; margin-top:48px}
+    .foot-grid{display:grid; gap:24px; grid-template-columns: 1fr;}
+    @media (min-width:768px){ .foot-grid{ grid-template-columns: 1fr 2fr; } }
+    .cols{display:grid; grid-template-columns:repeat(2,1fr); gap:20px}
+    @media (min-width:640px){ .cols{ grid-template-columns:repeat(4,1fr) } }
+    .cols h4{margin:0; font-size:14px}
+    .cols ul{list-style:none; padding:0; margin:10px 0 0}
+    .cols li{margin:6px 0}
+    .muted{color:var(--muted)}
+
+    /* Small screens */
+    @media (max-width: 960px){
+      .hero-grid{grid-template-columns:1fr}
+      .feature{grid-template-columns:1fr}
+      .links{display:none}
+      .menu-btn{display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; border-radius:10px; border:1px solid var(--line); background:#fff}
+      .mobile-menu{display:none; border-top:1px solid var(--line)}
+      .mobile-menu.open{display:block}
+      .mobile-menu a, .mobile-menu button{display:block; padding:12px 4px; width:100%; text-align:left; background:none; border:0; font:inherit; cursor:pointer}
+      .mobile-sub{display:none; padding-left:12px}
+      .mobile-sub.open{display:block}
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="container nav">
+      <div class="brand"><div class="logo"></div><span>YourLogo</span></div>
+      <nav class="links" aria-label="Primary">
+        <a href="#">Home</a>
+        <!-- Blog dropdown -->
+        <div class="dropdown" id="dd-blog">
+          <button class="nav-btn" aria-expanded="false" aria-haspopup="true">Blog <span class="caret"></span></button>
+          <div class="menu" role="menu" aria-label="Blog">
+            <a href="#blog">Latest posts</a>
+            <a href="#popular">Most popular</a>
+            <a href="#news">News & updates</a>
+            <a href="#tutorials">Tutorials</a>
+          </div>
+        </div>
+        <!-- Category dropdown -->
+        <div class="dropdown" id="dd-cat">
+          <button class="nav-btn" aria-expanded="false" aria-haspopup="true">Category <span class="caret"></span></button>
+          <div class="menu" role="menu" aria-label="Categories">
+            <a href="#uiux">UI/UX</a>
+            <a href="#frontend">Frontend</a>
+            <a href="#content">Content Strategy</a>
+            <a href="#systems">Design Systems</a>
+          </div>
+        </div>
+        <a href="#contact">Contact</a>
+      </nav>
+      <div class="search">
+        <input aria-label="Search" placeholder="Search…" />
+        <button class="button">Search</button>
+        <button class="menu-btn" id="menuBtn" aria-label="Open menu">≡</button>
+      </div>
+    </div>
+    <!-- Mobile menu -->
+    
+  </header>
+
+  <main class="container" style="padding: 32px 20px 0;">
+    <!-- Hero Banner -->
+    <section class="hero">
+      <div class="hero-grid">
+        <div>
+          <h1>Design stories worth your time</h1>
+          <p>Fresh, thoughtfully crafted articles on UI/UX, content strategy, and modern front‑end craft. No fluff—just signal.</p>
+          <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:14px">
+            <button class="button">Read latest</button>
+            <button class="button outline">Browse topics</button>
+            <span class="badge">Updated weekly</span>
+          </div>
+        </div>
+        <figure class="hero-figure">
+          <img alt="Hero" src="https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?q=80&w=1600&auto=format&fit=crop">
+        </figure>
+      </div>
+    </section>
+
+    <!-- Main content grid -->
+    <section class="main">
+      <!-- Left column: Most viewed cards -->
+      <div>
+        <div style="display:flex; align-items:end; justify-content:space-between; margin:18px 0 12px">
+          <h2 style="margin:0; font-size:20px">Most viewed</h2>
+          <a href="#" style="color:var(--brand)">See all</a>
+        </div>
+        <div class="grid cards">
+          <!-- Card 1 -->
+          <article class="card post">
+            <div class="thumb"><img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1200&auto=format&fit=crop" alt="cover"></div>
+            <div class="body">
+              <h3>Most viewed post 1</h3>
+              <p>Quick intro text that teases the content. Clean, concise, and inviting.</p>
+              <div class="meta"><span>5 min read</span><span>1,200 views</span></div>
+            </div>
+          </article>
+          <!-- Card 2 -->
+          <article class="card post">
+            <div class="thumb"><img src="https://images.unsplash.com/photo-1515879218367-8466d910aaa4?q=80&w=1200&auto=format&fit=crop" alt="cover"></div>
+            <div class="body">
+              <h3>Most viewed post 2</h3>
+              <p>Quick intro text that teases the content. Clean, concise, and inviting.</p>
+              <div class="meta"><span>6 min read</span><span>2,400 views</span></div>
+            </div>
+          </article>
+          <!-- Card 3 -->
+          <article class="card post">
+            <div class="thumb"><img src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1200&auto=format&fit=crop" alt="cover"></div>
+            <div class="body">
+              <h3>Most viewed post 3</h3>
+              <p>Quick intro text that teases the content. Clean, concise, and inviting.</p>
+              <div class="meta"><span>7 min read</span><span>3,600 views</span></div>
+            </div>
+          </article>
+          <!-- Card 4 -->
+          <article class="card post">
+            <div class="thumb"><img src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1200&auto=format&fit=crop" alt="cover"></div>
+            <div class="body">
+              <h3>Most viewed post 4</h3>
+              <p>Quick intro text that teases the content. Clean, concise, and inviting.</p>
+              <div class="meta"><span>4 min read</span><span>4,800 views</span></div>
+            </div>
+          </article>
+          <!-- Card 5 -->
+          <article class="card post">
+            <div class="thumb"><img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1200&auto=format&fit=crop" alt="cover"></div>
+            <div class="body">
+              <h3>Most viewed post 5</h3>
+              <p>Quick intro text that teases the content. Clean, concise, and inviting.</p>
+              <div class="meta"><span>5 min read</span><span>6,000 views</span></div>
+            </div>
+          </article>
+          <!-- Card 6 -->
+          <article class="card post">
+            <div class="thumb"><img src="https://images.unsplash.com/photo-1515879218367-8466d910aaa4?q=80&w=1200&auto=format&fit=crop" alt="cover"></div>
+            <div class="body">
+              <h3>Most viewed post 6</h3>
+              <p>Quick intro text that teases the content. Clean, concise, and inviting.</p>
+              <div class="meta"><span>8 min read</span><span>7,200 views</span></div>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <!-- Right column: New posts sidebar -->
+      <aside>
+        <div class="card panel">
+          <div style="padding:16px; border-bottom:1px solid var(--line); background:#fafafa">
+            <div style="font-weight:700">New posts</div>
+            <div class="muted" style="font-size:14px">Fresh drops from the studio</div>
+          </div>
+          <ul class="list">
+            <li><a href="#">New in: Motion design tips</a><span>Aug 10</span></li>
+            <li><a href="#">Color theory that actually helps</a><span>Aug 09</span></li>
+            <li><a href="#">How to write sticky copy</a><span>Aug 07</span></li>
+            <li><a href="#">A11y for designers (fast)</a><span>Aug 05</span></li>
+            <li><a href="#">Cards that convert</a><span>Aug 01</span></li>
+          </ul>
+          <div style="padding:16px"><button class="button outline" style="width:100%">View all</button></div>
+        </div>
+      </aside>
+    </section>
+
+    <!-- Feature: Designer and content creator -->
+    <section class="card feature" style="margin-top:28px">
+      <div>
+        <h3 style="margin:0; font-size:22px">Designer and content creator</h3>
+        <p style="margin:10px 0 0">I craft interfaces and words that work together. From wireframes to web copy, I help teams build digital experiences that feel effortless. Available for select freelance projects, audits, and workshops.</p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:14px">
+          <span class="badge">UI/UX</span>
+          <span class="badge">Design systems</span>
+          <span class="badge">Content strategy</span>
+          <span class="badge">Frontend</span>
+        </div>
+        <div style="display:flex; gap:10px; margin-top:16px">
+          <button class="button">Work with me</button>
+          <button class="button outline">Portfolio →</button>
+        </div>
+      </div>
+      <div class="portrait">
+        <img alt="Portrait" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1200&auto=format&fit=crop">
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container" style="padding:28px 20px 36px">
+      <div class="foot-grid">
+        <div>
+          <div class="brand"><div class="logo"></div><span>YourLogo</span></div>
+          <p class="muted" style="margin-top:10px; max-width:42ch">A modern blog template focused on clarity, craft, and performance.</p>
+        </div>
+        <div>
+          <div class="cols">
+            <div>
+              <h4>Explore</h4>
+              <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#blog">Blog</a></li>
+                <li><a href="#categories">Categories</a></li>
+                <li><a href="#contact">Contact</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4>Resources</h4>
+              <ul>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Licensing</a></li>
+                <li><a href="#">RSS</a></li>
+                <li><a href="#">Sitemap</a></li>
+              </ul>
+            </div>
+            <div style="grid-column: span 2">
+              <h4>Stay in the loop</h4>
+              <p class="muted" style="margin:10px 0 8px">Get fresh posts once a week. No spam, ever.</p>
+              <div style="display:flex; gap:8px; max-width:420px">
+                <input placeholder="Your email" aria-label="Email" style="flex:1; height:40px; border:1px solid var(--line); border-radius:10px; padding:0 10px" />
+                <button class="button" style="height:40px">Subscribe</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="muted" style="margin-top:18px; font-size:12px">© <span id="year"></span> Wow Blog. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <script>
+    // Mobile menu toggle
+    const btn = document.getElementById('menuBtn');
+    const menu = document.getElementById('mobileMenu');
+    btn && btn.addEventListener('click', ()=> menu.classList.toggle('open'));
+    // Dynamic year
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Desktop dropdown toggles (click + outside + Esc)
+    const dropdowns = document.querySelectorAll('.dropdown');
+    dropdowns.forEach(dd=>{
+      const btn = dd.querySelector('button');
+      btn.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        // close others
+        dropdowns.forEach(other=>{ if(other!==dd) other.classList.remove('open'); other.querySelector('button').setAttribute('aria-expanded','false'); });
+        dd.classList.toggle('open');
+        btn.setAttribute('aria-expanded', dd.classList.contains('open'));
+      });
+    });
+    document.addEventListener('click',()=>{ dropdowns.forEach(dd=>{ dd.classList.remove('open'); dd.querySelector('button').setAttribute('aria-expanded','false'); }); });
+    document.addEventListener('keydown',(e)=>{ if(e.key==='Escape'){ dropdowns.forEach(dd=>{ dd.classList.remove('open'); dd.querySelector('button').setAttribute('aria-expanded','false'); }); }});
+
+    // Mobile submenu toggles
+    document.querySelectorAll('.js-mobile-toggle').forEach(t=>{
+      t.addEventListener('click',()=>{
+        const target = document.querySelector(t.dataset.target);
+        target.classList.toggle('open');
+      });
+    });
+  </script>
+</body>
+</html>
