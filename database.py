@@ -65,6 +65,6 @@ def init_db() -> None:
     creating metadata.
     """
     # Import models so SQLModel.metadata is populated
-    import models  # noqa: F401
+    import model  # noqa: F401
 
     SQLModel.metadata.create_all(engine)
