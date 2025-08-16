@@ -24,3 +24,25 @@ class PostRead(SQLModel):
     views: int
     created_at: datetime
     updated_at: datetime
+    
+
+class BannerRead(SQLModel):
+    id: int
+    image1_url: Optional[str] = None
+    image2_url: Optional[str] = None
+    heading: Optional[str] = None
+    content: Optional[str] = None
+    btn1_text: Optional[str] = None
+    btn1_link: Optional[str] = None
+    btn2_text: Optional[str] = None
+    btn2_link: Optional[str] = None
+
+class BannerUpdate(SQLModel):
+    image1_url: Optional[str] = None
+    image2_url: Optional[str] = None
+    heading: Optional[str] = None
+    content: Optional[str] = None
+    btn1_text: Optional[str] = None
+    btn1_link: Optional[str] = None
+    btn2_text: Optional[str] = None
+    btn2_link: Optional[str] = None
