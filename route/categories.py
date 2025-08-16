@@ -5,8 +5,7 @@ from pathlib import Path
 from typing import List, Optional
 import re
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, Response
 from sqlmodel import Session, select
 
 from database import get_session
@@ -126,4 +125,4 @@ async def delete_category(cat_id: int, session: Session = Depends(get_session)):
 
     session.delete(cat)
     session.commit()
-    return JSONResponse(status_code=204, content=None)
+    return Response(status_code=204)  # ✅ Correct for no-content response

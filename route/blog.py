@@ -5,8 +5,7 @@ from pathlib import Path
 from typing import List, Optional
 import re
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, Response
 from sqlmodel import Session, select
 
 from database import get_session
@@ -161,4 +160,4 @@ async def delete_post(post_id: int, session: Session = Depends(get_session)):
         raise HTTPException(status_code=404, detail="Post not found")
     session.delete(post)
     session.commit()
-    return JSONResponse(status_code=204, content=None)
+    return Response(status_code=204)  # ✅ Correct way for 204

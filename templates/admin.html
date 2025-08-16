@@ -223,196 +223,238 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script>
-  (function(){
-    // Prevent multiple inits if page scripts hot-reload
-    if (window.AdminInit) return; window.AdminInit = true;
+ <script>
+(function(){
+  if (window.AdminInit) return; window.AdminInit = true;
 
-    const API = '';// same-origin
-    const $ = s => document.querySelector(s);
-    const el = (tag, attrs={}) => { const n=document.createElement(tag); Object.entries(attrs).forEach(([k,v])=>{ if(k==='text') n.textContent=v; else if(k==='html') n.innerHTML=v; else n.setAttribute(k,v); }); return n; };
-    const toast = (msg) => { const t=$('#toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 1800); };
+  const API = '';
+  const $ = s => document.querySelector(s);
+  const el = (tag, attrs={}) => { const n=document.createElement(tag); Object.entries(attrs).forEach(([k,v])=>{ if(k==='text') n.textContent=v; else if(k==='html') n.innerHTML=v; else n.setAttribute(k,v); }); return n; };
+  const toast = (msg) => { const t=$('#toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 1800); };
 
-    async function api(method, url, body, isForm){
-      const opts = { method };
-      if (body){
-        if (isForm){ opts.body = body; }
-        else { opts.headers = { 'Content-Type':'application/json' }; opts.body = JSON.stringify(body); }
-      }
-      const r = await fetch(API+url, opts);
-      if (!r.ok){ let m='Request failed'; try{ const j=await r.json(); m=j.detail||JSON.stringify(j); }catch{} throw new Error(m); }
-      const ct = r.headers.get('content-type')||''; return ct.includes('application/json') ? r.json() : r.text();
+  async function api(method, url, body, isForm){
+    const opts = { method };
+    if (body){
+      if (isForm){ opts.body = body; }
+      else { opts.headers = { 'Content-Type':'application/json' }; opts.body = JSON.stringify(body); }
     }
+    const r = await fetch(API+url, opts);
+    if (!r.ok){ let m='Request failed'; try{ const j=await r.json(); m=j.detail||JSON.stringify(j); }catch{} throw new Error(m); }
+    const ct = r.headers.get('content-type')||''; return ct.includes('application/json') ? r.json() : r.text();
+  }
 
-    async function upload(file, type){ if(!file) return null; const fd=new FormData(); fd.append('type', type||'misc'); fd.append('file', file); const res = await api('POST','/api/upload', fd, true); return res.url; }
+  async function upload(file, type){
+    if(!file) return null;
+    const fd=new FormData();
+    fd.append('type', type||'misc');
+    fd.append('file', file);
+    const res = await api('POST','/api/upload', fd, true);
+    return res.url;
+  }
 
-    // ------- Profile upload -------
-    const pfFile = $('#pfFile');
-    const pfAvatar = $('#pfAvatar');
-    pfFile && pfFile.addEventListener('change', async ()=>{
-      const f = pfFile.files[0]; if(!f) return;
-      try{ const url = await upload(f,'profile'); pfAvatar.innerHTML = '<img alt="pfp" src="'+url+'">'; toast('Profile uploaded'); }
-      catch(e){ toast(e.message); }
+  // ------- Profile upload -------
+  const pfFile = $('#pfFile');
+  const pfAvatar = $('#pfAvatar');
+  pfFile && pfFile.addEventListener('change', async ()=>{
+    const f = pfFile.files[0]; if(!f) return;
+    try{ const url = await upload(f,'profile'); pfAvatar.innerHTML = '<img alt="pfp" src="'+url+'">'; toast('Profile uploaded'); }
+    catch(e){ toast(e.message); }
+  });
+
+  // ------- State -------
+  let editingCatId = null;
+  let editingPostId = null;
+  let categoriesCache = [];
+
+  // ------- Categories -------
+  const catForm = $('#catCreateForm');
+  const catCancelEdit = $('#catCancelEdit');
+  const catTbody = $('#catTbody');
+
+  function resetCatForm(){ catForm.reset(); editingCatId=null; catCancelEdit.style.display='none'; }
+
+  async function loadCategories(q){
+    const qs = q ? ('?q='+encodeURIComponent(q)) : '';
+    const rows = await api('GET','/api/categories'+qs);
+    categoriesCache = rows;
+    catTbody.innerHTML = '';
+    if (!rows.length){ catTbody.appendChild(el('tr',{html:'<td colspan="5" class="muted">No categories yet</td>'})); }
+    rows.forEach(c=>{
+      const tr = el('tr');
+      tr.appendChild(el('td',{text:c.name}));
+      tr.appendChild(el('td',{html:'<span class="pill">'+c.slug+'</span>'}));
+      tr.appendChild(el('td',{text:c.description||''}));
+      tr.appendChild(el('td',{html: c.thumbnail_url ? '<a href="'+c.thumbnail_url+'" target="_blank">thumb</a>' : '<span class="muted">—</span>' }));
+      const tdA = el('td');
+      const btnV = el('button',{class:'btn info',text:'View',style:'margin-right:6px'});
+      const btnE = el('button',{class:'btn',text:'Edit'});
+      const btnD = el('button',{class:'btn danger',text:'Delete',style:'margin-left:6px'});
+      btnV.addEventListener('click',()=> viewCategory(c));
+      btnE.addEventListener('click',()=> startEditCategory(c));
+      btnD.addEventListener('click',()=> deleteCategory(c.id));
+      tdA.append(btnV, btnE, btnD);
+      tr.appendChild(tdA);
+      catTbody.appendChild(tr);
     });
+    fillCategorySelect();
+  }
 
-    // ------- State -------
-    let editingCatId = null; // number | null
-    let editingPostId = null;
-    let categoriesCache = [];
+  function fillCategorySelect(){
+    const sel = $('#postCategory');
+    if (!sel) return;
+    const val = sel.value;
+    sel.innerHTML = '<option value="">== Select Category ==</option>';
+    categoriesCache.forEach(c=> sel.appendChild(el('option',{value:String(c.id), text:c.name})) );
+    const opt = Array.from(sel.options).find(o=>o.value===val); if(opt) sel.value = val;
+  }
 
-    // ------- Categories -------
-    const catForm = $('#catCreateForm');
-    const catCancelEdit = $('#catCancelEdit');
-    const catTbody = $('#catTbody');
+  function startEditCategory(c){
+    $('#r-cat-create').checked = true;
+    $('#catName').value = c.name||'';
+    $('#catDesc').value = c.description||'';
+    $('#catThumb').value = '';
+    editingCatId = c.id;
+    catCancelEdit.style.display = 'inline-block';
+    toast('Editing category: '+c.name);
+  }
 
-    function resetCatForm(){ catForm.reset(); editingCatId=null; catCancelEdit.style.display='none'; }
+  function viewCategory(c){
+    let msg = `Name: ${c.name}\nSlug: ${c.slug}\nDescription: ${c.description || '—'}\nCreated: ${c.created_at}`;
+    alert(msg);
+  }
 
-    async function loadCategories(q){
-      const qs = q ? ('?q='+encodeURIComponent(q)) : '';
-      const rows = await api('GET','/api/categories'+qs);
-      categoriesCache = rows;
-      // fill list
-      catTbody.innerHTML = '';
-      if (!rows.length){ catTbody.appendChild(el('tr',{html:'<td colspan="5" class="muted">No categories yet</td>'})); }
-      rows.forEach(c=>{
-        const tr = el('tr');
-        tr.appendChild(el('td',{text:c.name}));
-        tr.appendChild(el('td',{html:'<span class="pill">'+c.slug+'</span>'}));
-        tr.appendChild(el('td',{text:c.description||''}));
-        tr.appendChild(el('td',{html: c.thumbnail_url ? '<a href="'+c.thumbnail_url+'" target="_blank">thumb</a>' : '<span class="muted">—</span>' }));
-        const tdA = el('td');
-        const btnE = el('button',{class:'btn',text:'Edit'});
-        const btnD = el('button',{class:'btn danger',text:'Delete', style:'margin-left:6px'});
-        btnE.addEventListener('click',()=> startEditCategory(c));
-        btnD.addEventListener('click',()=> deleteCategory(c.id));
-        tdA.append(btnE,btnD); tr.appendChild(tdA);
-        catTbody.appendChild(tr);
-      });
-      // also refresh category select for posts
-      fillCategorySelect();
-    }
+  async function deleteCategory(id){
+    if(!confirm('Delete this category?')) return;
+    try{
+      await api('DELETE','/api/categories/'+id);
+      toast('Category deleted');
+      await loadCategories($('#q').value.trim());
+    }catch(e){ toast(e.message); }
+  }
 
-    function fillCategorySelect(){
-      const sel = $('#postCategory');
-      if (!sel) return; const val = sel.value; sel.innerHTML = '<option value="">== Select Category ==</option>';
-      categoriesCache.forEach(c=> sel.appendChild(el('option',{value:String(c.id), text:c.name})) );
-      const opt = Array.from(sel.options).find(o=>o.value===val); if(opt) sel.value = val;
-    }
+  catCancelEdit && catCancelEdit.addEventListener('click',()=> resetCatForm());
 
-    function startEditCategory(c){
-      $('#r-cat-create').checked = true; // switch panel
-      $('#catName').value = c.name||'';
-      $('#catDesc').value = c.description||'';
-      $('#catThumb').value = '';
-      editingCatId = c.id;
-      catCancelEdit.style.display = 'inline-block';
-      toast('Editing category: '+c.name);
-    }
+  catForm && catForm.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const name = $('#catName').value.trim();
+    const description = $('#catDesc').value.trim();
+    const file = $('#catThumb').files[0]||null;
+    if(!name) return toast('Name is required');
+    try{
+      const fd = new FormData();
+      fd.append('name', name);
+      if (description) fd.append('description', description);
+      if (file) fd.append('thumbnail', file);
+      if (editingCatId){ await api('PUT','/api/categories/'+editingCatId, fd, true); toast('Category updated'); }
+      else { await api('POST','/api/categories', fd, true); toast('Category created'); }
+      resetCatForm(); await loadCategories($('#q').value.trim());
+    }catch(err){ toast(err.message); }
+  });
 
-    async function deleteCategory(id){ if(!confirm('Delete this category?')) return; try{ await api('DELETE','/api/categories/'+id); toast('Category deleted'); await loadCategories($('#q').value.trim()); }catch(e){ toast(e.message); } }
+  // ------- Posts -------
+  const postForm = $('#postCreateForm');
+  const postCancelEdit = $('#postCancelEdit');
+  const postTbody = $('#postTbody');
 
-    catCancelEdit && catCancelEdit.addEventListener('click',()=> resetCatForm());
+  function resetPostForm(){ postForm.reset(); editingPostId=null; $('#postRead').value = 5; postCancelEdit.style.display='none'; fillCategorySelect(); }
 
-    catForm && catForm.addEventListener('submit', async (e)=>{
-      e.preventDefault();
-      const name = $('#catName').value.trim();
-      const description = $('#catDesc').value.trim();
-      const file = $('#catThumb').files[0]||null;
-      if(!name) return toast('Name is required');
-      try{
-        const fd = new FormData();
-        fd.append('name', name);
-        if (description) fd.append('description', description);
-        if (file) fd.append('thumbnail', file);
-        if (editingCatId){ await api('PUT','/api/categories/'+editingCatId, fd, true); toast('Category updated'); }
-        else { await api('POST','/api/categories', fd, true); toast('Category created'); }
-        resetCatForm(); await loadCategories($('#q').value.trim());
-      }catch(err){ toast(err.message); }
+  async function loadPosts(q){
+    const qs = q ? ('?q='+encodeURIComponent(q)) : '';
+    const rows = await api('GET','/api/posts'+qs);
+    postTbody.innerHTML = '';
+    if (!rows.length){ postTbody.appendChild(el('tr',{html:'<td colspan="5" class="muted">No posts yet</td>'})); }
+    rows.forEach(p=>{
+      const tr = el('tr');
+      tr.appendChild(el('td',{text:p.title}));
+      const catName = (categoriesCache.find(c=> String(c.id)===String(p.category_id))||{}).name || '—';
+      tr.appendChild(el('td',{text:catName}));
+      tr.appendChild(el('td',{html:'<span class="pill">'+(p.status||'active')+'</span>'}));
+      tr.appendChild(el('td',{html: p.cover_url ? '<a href="'+p.cover_url+'" target="_blank">cover</a>' : '<span class="muted">—</span>' }));
+      const tdA = el('td');
+      const btnV = el('button',{class:'btn info',text:'View',style:'margin-right:6px'});
+      const btnE = el('button',{class:'btn',text:'Edit'});
+      const btnD = el('button',{class:'btn danger',text:'Delete',style:'margin-left:6px'});
+      btnV.addEventListener('click',()=> viewPost(p));
+      btnE.addEventListener('click',()=> startEditPost(p));
+      btnD.addEventListener('click',()=> deletePost(p.id));
+      tdA.append(btnV, btnE, btnD);
+      tr.appendChild(tdA);
+      postTbody.appendChild(tr);
     });
+  }
 
-    // ------- Posts -------
-    const postForm = $('#postCreateForm');
-    const postCancelEdit = $('#postCancelEdit');
-    const postTbody = $('#postTbody');
+  function viewPost(p){
+    const catName = (categoriesCache.find(c=> String(c.id)===String(p.category_id))||{}).name || '—';
+    let msg = `Title: ${p.title}
+Category: ${catName}
+Excerpt: ${p.excerpt || '—'}
+Content: ${p.content || '—'}
+Status: ${p.status}
+Read Time: ${p.read_time} min
+Created: ${p.created_at}`;
+    alert(msg);
+  }
 
-    function resetPostForm(){ postForm.reset(); editingPostId=null; $('#postRead').value = 5; postCancelEdit.style.display='none'; fillCategorySelect(); }
+  function startEditPost(p){
+    $('#r-blog-create').checked = true;
+    $('#postTitle').value = p.title||'';
+    $('#postExcerpt').value = p.excerpt||'';
+    $('#postContent').value = p.content||'';
+    $('#postStatus').value = p.status||'active';
+    $('#postRead').value = p.read_time||5;
+    $('#postThumb').value = '';
+    $('#postCategory').value = p.category_id ? String(p.category_id) : '';
+    editingPostId = p.id;
+    postCancelEdit.style.display='inline-block';
+    toast('Editing post: '+p.title);
+  }
 
-    async function loadPosts(q){
-      const qs = q ? ('?q='+encodeURIComponent(q)) : '';
-      const rows = await api('GET','/api/posts'+qs);
-      postTbody.innerHTML = '';
-      if (!rows.length){ postTbody.appendChild(el('tr',{html:'<td colspan="5" class="muted">No posts yet</td>'})); }
-      rows.forEach(p=>{
-        const tr = el('tr');
-        tr.appendChild(el('td',{text:p.title}));
-        const catName = (categoriesCache.find(c=> String(c.id)===String(p.category_id))||{}).name || '—';
-        tr.appendChild(el('td',{text:catName}));
-        tr.appendChild(el('td',{html:'<span class="pill">'+(p.status||'active')+'</span>'}));
-        tr.appendChild(el('td',{html: p.cover_url ? '<a href="'+p.cover_url+'" target="_blank">cover</a>' : '<span class="muted">—</span>' }));
-        const tdA = el('td');
-        const btnE = el('button',{class:'btn',text:'Edit'});
-        const btnD = el('button',{class:'btn danger',text:'Delete',style:'margin-left:6px'});
-        btnE.addEventListener('click',()=> startEditPost(p));
-        btnD.addEventListener('click',()=> deletePost(p.id));
-        tdA.append(btnE,btnD); tr.appendChild(tdA);
-        postTbody.appendChild(tr);
-      });
-    }
+  async function deletePost(id){
+    if(!confirm('Delete this post?')) return;
+    try{
+      await api('DELETE','/api/posts/'+id);
+      toast('Post deleted');
+      await loadPosts($('#q').value.trim());
+    }catch(e){ toast(e.message); }
+  }
 
-    function startEditPost(p){
-      $('#r-blog-create').checked = true;
-      $('#postTitle').value = p.title||'';
-      $('#postExcerpt').value = p.excerpt||'';
-      $('#postContent').value = p.content||'';
-      $('#postStatus').value = p.status||'active';
-      $('#postRead').value = p.read_time||5;
-      $('#postThumb').value = '';
-      $('#postCategory').value = p.category_id ? String(p.category_id) : '';
-      editingPostId = p.id;
-      postCancelEdit.style.display='inline-block';
-      toast('Editing post: '+p.title);
-    }
+  postCancelEdit && postCancelEdit.addEventListener('click',()=> resetPostForm());
 
-    async function deletePost(id){ if(!confirm('Delete this post?')) return; try{ await api('DELETE','/api/posts/'+id); toast('Post deleted'); await loadPosts($('#q').value.trim()); }catch(e){ toast(e.message); } }
+  postForm && postForm.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const title = $('#postTitle').value.trim();
+    const excerpt = $('#postExcerpt') ? $('#postExcerpt').value.trim() : '';
+    const content = $('#postContent').value.trim();
+    const status = $('#postStatus').value;
+    const read_time = Number($('#postRead').value||5);
+    const category_id = $('#postCategory').value ? Number($('#postCategory').value) : '';
+    const file = $('#postThumb').files[0]||null;
+    if(!title) return toast('Title is required');
+    try{
+      const fd = new FormData();
+      fd.append('title', title);
+      if (excerpt) fd.append('excerpt', excerpt);
+      if (content) fd.append('content', content);
+      fd.append('status', status);
+      fd.append('read_time', String(read_time||5));
+      if (category_id!=='') fd.append('category_id', String(category_id));
+      if (file) fd.append('thumbnail', file);
+      if (editingPostId){ await api('PUT','/api/posts/'+editingPostId, fd, true); toast('Post updated'); }
+      else { await api('POST','/api/posts', fd, true); toast('Post created'); }
+      resetPostForm(); await Promise.all([loadCategories($('#q').value.trim()), loadPosts($('#q').value.trim())]);
+    }catch(err){ toast(err.message); }
+  });
 
-    postCancelEdit && postCancelEdit.addEventListener('click',()=> resetPostForm());
+  const q = $('#q');
+  function runSearch(){ const v=q.value.trim(); loadCategories(v); loadPosts(v); }
+  q && q.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ runSearch(); }});
 
-    postForm && postForm.addEventListener('submit', async (e)=>{
-      e.preventDefault();
-      const title = $('#postTitle').value.trim();
-      const excerpt = $('#postExcerpt') ? $('#postExcerpt').value.trim() : '';
-      const content = $('#postContent').value.trim();
-      const status = $('#postStatus').value;
-      const read_time = Number($('#postRead').value||5);
-      const category_id = $('#postCategory').value ? Number($('#postCategory').value) : '';
-      const file = $('#postThumb').files[0]||null;
-      if(!title) return toast('Title is required');
-      try{
-        const fd = new FormData();
-        fd.append('title', title);
-        if (excerpt) fd.append('excerpt', excerpt);
-        if (content) fd.append('content', content);
-        fd.append('status', status);
-        fd.append('read_time', String(read_time||5));
-        if (category_id!=='') fd.append('category_id', String(category_id));
-        if (file) fd.append('thumbnail', file);
-        if (editingPostId){ await api('PUT','/api/posts/'+editingPostId, fd, true); toast('Post updated'); }
-        else { await api('POST','/api/posts', fd, true); toast('Post created'); }
-        resetPostForm(); await Promise.all([loadCategories($('#q').value.trim()), loadPosts($('#q').value.trim())]);
-      }catch(err){ toast(err.message); }
-    });
-
-    // ------- Search box behaviour -------
-    const q = $('#q');
-    function runSearch(){ const v=q.value.trim(); loadCategories(v); loadPosts(v); }
-    q && q.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ runSearch(); }});
-
-    // ------- Init -------
-    (async function init(){
-      try{ await loadCategories(); await loadPosts(); toast('Connected'); }
-      catch(e){ toast('API error: '+e.message); }
-    })();
+  (async function init(){
+    try{ await loadCategories(); await loadPosts(); toast('Connected'); }
+    catch(e){ toast('API error: '+e.message); }
   })();
-  </script>
+})();
+</script>
+
 </body>
 </html>
