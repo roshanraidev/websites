@@ -39,3 +39,23 @@ class Post(SQLModel, table=True):
 
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class Banner(SQLModel, table=True):
+    __tablename__ = "banners"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+
+    image1_url: Optional[str] = None
+    image2_url: Optional[str] = None
+    heading: Optional[str] = None
+    content: Optional[str] = None
+
+    # dynamic buttons (text + URL)
+    btn1_text: Optional[str] = None
+    btn1_url: Optional[str] = None
+    btn2_text: Optional[str] = None
+    btn2_url: Optional[str] = None
+
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)

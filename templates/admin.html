@@ -400,6 +400,7 @@
         <summary>Homepage Banner</summary>
         <div>
           <label class="sub" for="r-banner">Settings</label>
+          <label class="sub" for="r-banner-list">List</label><!-- NEW -->
         </div>
       </details>
     </nav>
@@ -426,11 +427,15 @@
     <input class="switch" type="radio" name="section" id="r-cat-list">
     <input class="switch" type="radio" name="section" id="r-blog-create">
     <input class="switch" type="radio" name="section" id="r-blog-list">
-    <!-- NEW: Banner switch -->
+    <!-- NEW: Banner switches -->
     <input class="switch" type="radio" name="section" id="r-banner">
+    <input class="switch" type="radio" name="section" id="r-banner-list"><!-- NEW -->
 
-    <!-- 🔧 Inline patch so Banner panel toggles without touching your global CSS -->
-    <style>#r-banner:checked ~ .content #panel-banner { display:block; }</style>
+    <!-- 🔧 Inline patch so Banner panels toggle without touching your global CSS -->
+    <style>
+      #r-banner:checked ~ .content #panel-banner { display:block; }
+      #r-banner-list:checked ~ .content #panel-banner-list { display:block; } /* NEW */
+    </style>
 
     <!-- Content Panels -->
     <div class="content">
@@ -577,22 +582,22 @@
           <div class="form-row" style="margin-top:10px">
             <div>
               <label>Button 1 Label</label>
-              <input id="btn1Text" placeholder="e.g. Learn more" />
+              <input id="bannerBtn1Text" placeholder="e.g. Learn more" />
             </div>
             <div>
               <label>Button 1 Link (URL or slug)</label>
-              <input id="btn1Link" placeholder="/about or https://…" />
+              <input id="bannerBtn1Link" placeholder="/about or https://…" />
             </div>
           </div>
 
           <div class="form-row" style="margin-top:10px">
             <div>
               <label>Button 2 Label</label>
-              <input id="btn2Text" placeholder="e.g. Contact us" />
+              <input id="bannerBtn2Text" placeholder="e.g. Contact us" />
             </div>
             <div>
               <label>Button 2 Link (URL or slug)</label>
-              <input id="btn2Link" placeholder="/contact or https://…" />
+              <input id="bannerBtn2Link" placeholder="/contact or https://…" />
             </div>
           </div>
 
@@ -602,10 +607,32 @@
           </div>
         </form>
       </section>
+
+      <!-- NEW: Banner List -->
+      <section id="panel-banner-list" class="panel card pad">
+        <h3>Banner List</h3>
+        <table class="table" style="margin-top:8px">
+          <thead>
+            <tr>
+              <th>Heading</th>
+              <th>Content</th>
+              <th>Images</th>
+              <th>Button 1</th>
+              <th>Button 2</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="bannerTbody">
+            <tr><td colspan="6" class="muted">Loading…</td></tr>
+          </tbody>
+        </table>
+      </section>
+
     </div>
   </section>
 </div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
 
 <script>
 (function () {
@@ -910,25 +937,38 @@
   });
 
   /* =========================================================
-   * Banner (logic only; no dynamic UI creation)
+   * Banner (Create/Update + List like Categories/Posts)
    * ========================================================= */
   const bannerForm = $('#bannerForm');
   const bannerImg1 = $('#bannerImg1');
   const bannerImg2 = $('#bannerImg2');
-  const bannerHeading = $('#bannerHeading');
-  const bannerContent = $('#bannerContent');
-  const bannerGo1 = $('#bannerGo1');
-  const bannerGo2 = $('#bannerGo2');
   const bannerImg1Preview = $('#bannerImg1Preview');
   const bannerImg2Preview = $('#bannerImg2Preview');
 
+  const bannerHeading = $('#bannerHeading');
+  const bannerContent = $('#bannerContent');
+
+  // Optional text fields (if you added them). If not present, we keep them blank.
+  const bannerBtn1Text = $('#bannerBtn1Text') || null;
+  const bannerBtn2Text = $('#bannerBtn2Text') || null;
+
+  // Link inputs – support any of these ids for compatibility
+  const bannerBtn1Link = $('#bannerBtn1Link') || $('#bannerBtn1Url') || $('#bannerGo1') || null;
+  const bannerBtn2Link = $('#bannerBtn2Link') || $('#bannerBtn2Url') || $('#bannerGo2') || null;
+
+  // List table body (new)
+  const bannerTbody = $('#bannerTbody');
+
+  let bannerCache = null;
   const bannerState = {
     image1_url: null,
     image2_url: null,
     heading: '',
     content: '',
-    go1: '',
-    go2: ''
+    btn1_text: '',
+    btn1_link: '',
+    btn2_text: '',
+    btn2_link: ''
   };
 
   function setImgPreview(imgEl, src) {
@@ -945,27 +985,123 @@
   async function loadBanner() {
     try {
       const data = await api('GET', '/api/banner');
-      bannerState.image1_url = data.image1_url || null;
-      bannerState.image2_url = data.image2_url || null;
-      bannerState.heading = data.heading || '';
-      bannerState.content = data.content || '';
-      bannerState.go1 = data.go1 || '';
-      bannerState.go2 = data.go2 || '';
-    } catch (e) {
-      // no-op if not configured yet
+      bannerCache = data;
+      Object.assign(bannerState, {
+        image1_url: data.image1_url || null,
+        image2_url: data.image2_url || null,
+        heading:    data.heading    || '',
+        content:    data.content    || '',
+        btn1_text:  data.btn1_text  || '',
+        btn1_link:  data.btn1_link  || data.btn1_url || data.go1 || '',
+        btn2_text:  data.btn2_text  || '',
+        btn2_link:  data.btn2_link  || data.btn2_url || data.go2 || ''
+      });
+    } catch (_) {
+      bannerCache = null;
+      Object.assign(bannerState, {
+        image1_url: null, image2_url: null, heading:'', content:'',
+        btn1_text:'', btn1_link:'', btn2_text:'', btn2_link:''
+      });
     }
 
-    // populate existing values into the HTML form
+    // populate form
     if (bannerHeading) bannerHeading.value = bannerState.heading;
     if (bannerContent) bannerContent.value = bannerState.content;
-    if (bannerGo1) bannerGo1.value = bannerState.go1;
-    if (bannerGo2) bannerGo2.value = bannerState.go2;
-
+    if (bannerBtn1Text) bannerBtn1Text.value = bannerState.btn1_text;
+    if (bannerBtn2Text) bannerBtn2Text.value = bannerState.btn2_text;
+    if (bannerBtn1Link) bannerBtn1Link.value = bannerState.btn1_link;
+    if (bannerBtn2Link) bannerBtn2Link.value = bannerState.btn2_link;
     setImgPreview(bannerImg1Preview, bannerState.image1_url);
     setImgPreview(bannerImg2Preview, bannerState.image2_url);
   }
 
-  // local image preview (HTML-only)
+  async function loadBannerList() {
+    if (!bannerTbody) return;
+    bannerTbody.innerHTML = '';
+    try {
+      const b = await api('GET', '/api/banner');
+      bannerCache = b;
+      const tr = el('tr');
+      // Heading
+      tr.appendChild(el('td', { text: b.heading || '—' }));
+      // Content (shortened)
+      tr.appendChild(el('td', { text: (b.content || '—').slice(0, 80) + ((b.content && b.content.length > 80) ? '…' : '') }));
+      // Images
+      tr.appendChild(el('td', {
+        html: [
+          b.image1_url ? `<a href="${b.image1_url}" target="_blank">img1</a>` : '<span class="muted">—</span>',
+          b.image2_url ? `<a href="${b.image2_url}" target="_blank">img2</a>` : '<span class="muted">—</span>',
+        ].join(' / ')
+      }));
+      // Buttons
+      const btn1Txt = b.btn1_text || '—';
+      const btn1Lnk = b.btn1_link || b.btn1_url || b.go1 || '';
+      const btn2Txt = b.btn2_text || '—';
+      const btn2Lnk = b.btn2_link || b.btn2_url || b.go2 || '';
+      tr.appendChild(el('td', { html: `<span class="pill">${btn1Txt}</span> ${btn1Lnk ? `→ <code>${btn1Lnk}</code>` : ''}` }));
+      tr.appendChild(el('td', { html: `<span class="pill">${btn2Txt}</span> ${btn2Lnk ? `→ <code>${btn2Lnk}</code>` : ''}` }));
+
+      // Actions
+      const tdA = el('td');
+      const btnV = el('button', { class: 'btn info', text: 'View' });
+      const btnE = el('button', { class: 'btn', text: 'Edit' });
+      const btnD = el('button', { class: 'btn danger', text: 'Delete' });
+      btnV.onclick = () => viewBanner(b);
+      btnE.onclick = () => startEditBanner(b);
+      btnD.onclick = () => deleteBanner();
+      tdA.append(btnV, btnE, btnD);
+      tr.appendChild(tdA);
+      bannerTbody.appendChild(tr);
+    } catch (e) {
+      // 404 → No banner configured
+      const tr = el('tr');
+      tr.appendChild(el('td', { html: '<span class="muted">No banner configured</span>', colspan: '6' }));
+      bannerTbody.appendChild(tr);
+    }
+  }
+
+  function viewBanner(b) {
+    const msg = `🏳️ Banner
+🖼️  img1: ${b.image1_url || '—'}
+🖼️  img2: ${b.image2_url || '—'}
+🏷️  heading: ${b.heading || '—'}
+✏️  content: ${b.content || '—'}
+🔘  btn1: ${b.btn1_text || '—'} → ${b.btn1_link || b.btn1_url || b.go1 || '—'}
+🔘  btn2: ${b.btn2_text || '—'} → ${b.btn2_link || b.btn2_url || b.go2 || '—'}
+⌚  updated: ${b.updated_at || '—'}`;
+    typeWriter(msg, t => toast(t, 2600));
+  }
+
+  function startEditBanner(b) {
+    const r = $('#r-banner');
+    if (r) r.checked = true;
+    if (bannerHeading) bannerHeading.value = b.heading || '';
+    if (bannerContent) bannerContent.value = b.content || '';
+    if (bannerBtn1Text) bannerBtn1Text.value = b.btn1_text || '';
+    if (bannerBtn2Text) bannerBtn2Text.value = b.btn2_text || '';
+    if (bannerBtn1Link) bannerBtn1Link.value = b.btn1_link || b.btn1_url || b.go1 || '';
+    if (bannerBtn2Link) bannerBtn2Link.value = b.btn2_link || b.btn2_url || b.go2 || '';
+    setImgPreview(bannerImg1Preview, b.image1_url || '');
+    setImgPreview(bannerImg2Preview, b.image2_url || '');
+    toast('Editing banner');
+  }
+
+  async function deleteBanner() {
+    if (!(await modalConfirm('Delete banner settings?'))) return;
+    try {
+      await api('DELETE', '/api/banner');
+      toast('Banner deleted 🗑️');
+      // Clear form + previews
+      if (bannerForm) bannerForm.reset();
+      setImgPreview(bannerImg1Preview, null);
+      setImgPreview(bannerImg2Preview, null);
+      await loadBannerList();
+    } catch (e) {
+      toast(e.message || 'Failed to delete banner');
+    }
+  }
+
+  // local image preview
   bannerImg1?.addEventListener('change', () => {
     const f = bannerImg1.files?.[0];
     if (f) setImgPreview(bannerImg1Preview, URL.createObjectURL(f));
@@ -988,15 +1124,17 @@
       const payload = {
         image1_url: url1 || null,
         image2_url: url2 || null,
-        heading: bannerHeading?.value.trim() || '',
-        content: bannerContent?.value.trim() || '',
-        go1: bannerGo1?.value.trim() || '',
-        go2: bannerGo2?.value.trim() || ''
+        heading:    bannerHeading?.value.trim() || '',
+        content:    bannerContent?.value.trim() || '',
+        // send canonical names expected by backend
+        btn1_text:  bannerBtn1Text?.value.trim() || bannerState.btn1_text || '',
+        btn1_link:  bannerBtn1Link?.value.trim() || '',
+        btn2_text:  bannerBtn2Text?.value.trim() || bannerState.btn2_text || '',
+        btn2_link:  bannerBtn2Link?.value.trim() || ''
       };
 
       await api('PUT', '/api/banner', payload, false);
 
-      // update local state + show previews using HTML <img> tags
       Object.assign(bannerState, payload);
       setImgPreview(bannerImg1Preview, bannerState.image1_url);
       setImgPreview(bannerImg2Preview, bannerState.image2_url);
@@ -1004,6 +1142,7 @@
       toast('Banner saved ✅');
       if (bannerImg1) bannerImg1.value = '';
       if (bannerImg2) bannerImg2.value = '';
+      await loadBannerList();
     } catch (err) {
       toast(err.message || 'Failed to save banner');
     }
@@ -1018,6 +1157,7 @@
       const v = q.value.trim();
       loadCategories(v);
       loadPosts(v);
+      // (no banner search; singleton)
     }
   });
 
@@ -1044,6 +1184,7 @@
       await loadCategories();
       await loadPosts();
       await loadBanner();
+      await loadBannerList();
       toast('🎯 Connected to API');
     } catch (e) {
       toast('🚫 API error: ' + e.message);
@@ -1051,5 +1192,7 @@
   })();
 })();
 </script>
+
+
 </body>
 </html>

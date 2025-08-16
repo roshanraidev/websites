@@ -11,6 +11,10 @@ class CategoryRead(SQLModel):
     created_at: datetime
     updated_at: datetime
 
+    class Config:
+        orm_mode = True
+
+
 class PostRead(SQLModel):
     id: int
     title: str
@@ -24,7 +28,10 @@ class PostRead(SQLModel):
     views: int
     created_at: datetime
     updated_at: datetime
-    
+
+    class Config:
+        orm_mode = True
+
 
 class BannerRead(SQLModel):
     id: int
@@ -37,6 +44,10 @@ class BannerRead(SQLModel):
     btn2_text: Optional[str] = None
     btn2_link: Optional[str] = None
 
+    class Config:
+        orm_mode = True
+
+
 class BannerUpdate(SQLModel):
     image1_url: Optional[str] = None
     image2_url: Optional[str] = None
@@ -46,3 +57,6 @@ class BannerUpdate(SQLModel):
     btn1_link: Optional[str] = None
     btn2_text: Optional[str] = None
     btn2_link: Optional[str] = None
+
+    class Config:
+        orm_mode = True
