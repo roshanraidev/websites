@@ -24,33 +24,39 @@ def get_banner(session: Session = Depends(get_session)):
         raise HTTPException(status_code=404, detail="Banner not configured")
     return b
 
-@router.delete("")
-def delete_banner(session: Session = Depends(get_session)):
-    b = session.exec(select(Banner).limit(1)).first()
-    if not b:
-        raise HTTPException(status_code=404, detail="Banner not configured")
-    session.delete(b)
-    session.commit()
-    return {"ok": True}
+
+@router.get("/all", response_model=list[BannerRead])
+def get_banner_list(session: Session = Depends(get_session)):
+    """Handy for your 'List' table. Returns [] or [banner]."""
+    return session.exec(select(Banner)).all()
+
 
 @router.put("", response_model=BannerRead)
 def upsert_banner(
-    raw: dict = Body(...),   # accept raw to allow legacy keys
+    raw: dict = Body(...),  # accept raw JSON; we'll normalize keys
     session: Session = Depends(get_session),
 ):
     """
     Upsert the single banner record.
 
-    Accepts both:
-      - Canonical fields: image1_url, image2_url, heading, content,
-                          btn1_text, btn1_link, btn2_text, btn2_link
-      - Legacy fields: go1, go2  (mapped to btn1_link, btn2_link)
+    Accepts:
+      - image1_url, image2_url, heading, content,
+        btn1_text, btn1_url, btn2_text, btn2_url
+    Also accepted (legacy keys):
+      - btn1_link -> btn1_url
+      - btn2_link -> btn2_url
+      - go1       -> btn1_url
+      - go2       -> btn2_url
     """
-    # Legacy mapping
-    if "go1" in raw and "btn1_link" not in raw:
-        raw["btn1_link"] = raw.pop("go1")
-    if "go2" in raw and "btn2_link" not in raw:
-        raw["btn2_link"] = raw.pop("go2")
+    # Normalize legacy keys to *_url
+    if "btn1_link" in raw and "btn1_url" not in raw:
+        raw["btn1_url"] = raw.pop("btn1_link")
+    if "btn2_link" in raw and "btn2_url" not in raw:
+        raw["btn2_url"] = raw.pop("btn2_link")
+    if "go1" in raw and "btn1_url" not in raw:
+        raw["btn1_url"] = raw.pop("go1")
+    if "go2" in raw and "btn2_url" not in raw:
+        raw["btn2_url"] = raw.pop("go2")
 
     payload = BannerUpdate(**raw)
 
@@ -59,6 +65,7 @@ def upsert_banner(
         b = Banner()
         session.add(b)
 
+    # Update only provided fields
     for field, value in payload.dict(exclude_unset=True).items():
         setattr(b, field, value)
 
@@ -67,3 +74,14 @@ def upsert_banner(
     session.commit()
     session.refresh(b)
     return b
+
+
+@router.delete("")
+def delete_banner(session: Session = Depends(get_session)):
+    """Delete the singleton banner (idempotent)."""
+    b = _get_singleton(session)
+    if not b:
+        return {"ok": True}
+    session.delete(b)
+    session.commit()
+    return {"ok": True}

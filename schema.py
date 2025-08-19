@@ -2,6 +2,7 @@ from typing import Optional
 from datetime import datetime
 from sqlmodel import SQLModel
 
+
 class CategoryRead(SQLModel):
     id: int
     name: str
@@ -10,9 +11,6 @@ class CategoryRead(SQLModel):
     thumbnail_url: Optional[str]
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        orm_mode = True
 
 
 class PostRead(SQLModel):
@@ -29,9 +27,6 @@ class PostRead(SQLModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        orm_mode = True
-
 
 class BannerRead(SQLModel):
     id: int
@@ -40,12 +35,9 @@ class BannerRead(SQLModel):
     heading: Optional[str] = None
     content: Optional[str] = None
     btn1_text: Optional[str] = None
-    btn1_link: Optional[str] = None
+    btn1_url: Optional[str] = None
     btn2_text: Optional[str] = None
-    btn2_link: Optional[str] = None
-
-    class Config:
-        orm_mode = True
+    btn2_url: Optional[str] = None
 
 
 class BannerUpdate(SQLModel):
@@ -54,9 +46,6 @@ class BannerUpdate(SQLModel):
     heading: Optional[str] = None
     content: Optional[str] = None
     btn1_text: Optional[str] = None
-    btn1_link: Optional[str] = None
+    btn1_url: Optional[str] = None
     btn2_text: Optional[str] = None
-    btn2_link: Optional[str] = None
-
-    class Config:
-        orm_mode = True
+    btn2_url: Optional[str] = None

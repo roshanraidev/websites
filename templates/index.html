@@ -128,6 +128,16 @@
       .mobile-sub{display:none; padding-left:12px}
       .mobile-sub.open{display:block}
     }
+
+  @media (max-width: 768px) {
+  .feature {
+    grid-template-columns: 1fr !important;
+  }
+  .portrait {
+    margin-top: 20px;
+  }
+}
+
   </style>
 </head>
 <body>
@@ -273,26 +283,41 @@
       </aside>
     </section>
 
-    <!-- Feature: Designer and content creator -->
-    <section class="card feature" style="margin-top:28px">
-      <div>
-        <h3 style="margin:0; font-size:22px">Designer and content creator</h3>
-        <p style="margin:10px 0 0">I craft interfaces and words that work together. From wireframes to web copy, I help teams build digital experiences that feel effortless. Available for select freelance projects, audits, and workshops.</p>
-        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:14px">
-          <span class="badge">UI/UX</span>
-          <span class="badge">Design systems</span>
-          <span class="badge">Content strategy</span>
-          <span class="badge">Frontend</span>
+    
+
+    <!-- Contact Form Section -->
+ <section class="card feature" style="margin-top:28px; display: grid; grid-template-columns: 2fr 1fr; gap: 24px; align-items: flex-start;">
+  <div>
+    <h3 style="margin:0 0 10px">Get in touch</h3>
+    <p style="margin:10px 0 16px">
+      I craft interfaces and words that work together. From wireframes to web copy, I help teams build digital experiences that feel effortless. Available for select freelance projects, audits, and workshops.
+    </p>
+    <form id="contactForm" novalidate>
+      <div style="display:grid; gap:14px; grid-template-columns:1fr 1fr; margin-bottom:14px">
+        <div>
+          <label for="name" style="display:block; margin-bottom:4px">Name</label>
+          <input name="name" id="name" required placeholder="Jane Doe" style="width:100%; padding:10px; border:1px solid var(--line); border-radius:10px;" />
         </div>
-        <div style="display:flex; gap:10px; margin-top:16px">
-          <button class="button">Work with me</button>
-          <button class="button outline">Portfolio →</button>
+        <div>
+          <label for="email" style="display:block; margin-bottom:4px">Email</label>
+          <input name="email" id="email" type="email" required placeholder="jane@example.com" style="width:100%; padding:10px; border:1px solid var(--line); border-radius:10px;" />
         </div>
       </div>
-      <div class="portrait">
-        <img alt="Portrait" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1200&auto=format&fit=crop">
+      <div style="margin-bottom:14px">
+        <label for="message" style="display:block; margin-bottom:4px">Message</label>
+        <textarea name="message" id="message" rows="5" required placeholder="Tell us a bit about what you need..." style="width:100%; padding:10px; border:1px solid var(--line); border-radius:10px;"></textarea>
       </div>
-    </section>
+      <input type="text" name="website" style="display:none" tabindex="-1" autocomplete="off" />
+      <button class="button" type="submit">Send Message</button>
+    </form>
+  </div>
+
+  <div class="portrait">
+    <img src="https://images.unsplash.com/photo-1607746882042-944635dfe10e?q=80&w=800&auto=format&fit=crop" alt="Designer" style="width:100%; height:auto; border-radius:18px; border:1px solid var(--line);" />
+  </div>
+</section>
+
+
   </main>
 
   <!-- Footer -->
@@ -338,36 +363,94 @@
     </div>
   </footer>
 
-  <script>
-    // Mobile menu toggle
-    const btn = document.getElementById('menuBtn');
-    const menu = document.getElementById('mobileMenu');
-    btn && btn.addEventListener('click', ()=> menu.classList.toggle('open'));
-    // Dynamic year
-    document.getElementById('year').textContent = new Date().getFullYear();
+ <script>
+  // Mobile menu toggle
+  const btn = document.getElementById('menuBtn');
+  const menu = document.getElementById('mobileMenu');
+  btn && btn.addEventListener('click', ()=> menu.classList.toggle('open'));
 
-    // Desktop dropdown toggles (click + outside + Esc)
-    const dropdowns = document.querySelectorAll('.dropdown');
+  // Dynamic year
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  // Desktop dropdown toggles (click + outside + Esc)
+  const dropdowns = document.querySelectorAll('.dropdown');
+  dropdowns.forEach(dd=>{
+    const btn = dd.querySelector('button');
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      // close others
+      dropdowns.forEach(other=>{
+        if(other !== dd) {
+          other.classList.remove('open');
+          other.querySelector('button').setAttribute('aria-expanded','false');
+        }
+      });
+      dd.classList.toggle('open');
+      btn.setAttribute('aria-expanded', dd.classList.contains('open'));
+    });
+  });
+
+  document.addEventListener('click', ()=>{
     dropdowns.forEach(dd=>{
-      const btn = dd.querySelector('button');
-      btn.addEventListener('click', (e)=>{
-        e.stopPropagation();
-        // close others
-        dropdowns.forEach(other=>{ if(other!==dd) other.classList.remove('open'); other.querySelector('button').setAttribute('aria-expanded','false'); });
-        dd.classList.toggle('open');
-        btn.setAttribute('aria-expanded', dd.classList.contains('open'));
-      });
+      dd.classList.remove('open');
+      dd.querySelector('button').setAttribute('aria-expanded','false');
     });
-    document.addEventListener('click',()=>{ dropdowns.forEach(dd=>{ dd.classList.remove('open'); dd.querySelector('button').setAttribute('aria-expanded','false'); }); });
-    document.addEventListener('keydown',(e)=>{ if(e.key==='Escape'){ dropdowns.forEach(dd=>{ dd.classList.remove('open'); dd.querySelector('button').setAttribute('aria-expanded','false'); }); }});
+  });
 
-    // Mobile submenu toggles
-    document.querySelectorAll('.js-mobile-toggle').forEach(t=>{
-      t.addEventListener('click',()=>{
-        const target = document.querySelector(t.dataset.target);
-        target.classList.toggle('open');
+  document.addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape'){
+      dropdowns.forEach(dd=>{
+        dd.classList.remove('open');
+        dd.querySelector('button').setAttribute('aria-expanded','false');
       });
+    }
+  });
+
+  // Mobile submenu toggles
+  document.querySelectorAll('.js-mobile-toggle').forEach(t=>{
+    t.addEventListener('click', ()=>{
+      const target = document.querySelector(t.dataset.target);
+      target.classList.toggle('open');
     });
-  </script>
+  });
+
+  // ✉️ Contact Form Submission
+  const contactForm = document.getElementById('contactForm');
+  if (contactForm) {
+    contactForm.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const form = e.target;
+      const fd = new FormData(form);
+      if (fd.get('website')) return; // honeypot field
+
+      const payload = {
+        name: fd.get('name').trim(),
+        email: fd.get('email').trim(),
+        message: fd.get('message').trim()
+      };
+
+      if (!payload.name || !payload.email || !payload.message) {
+        alert('Please fill out all fields.');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) throw new Error((await res.json()).detail || 'Something went wrong.');
+
+        form.reset();
+        alert('Thanks! Your message has been sent.');
+      } catch (err) {
+        alert(err.message || 'Failed to send message.');
+      }
+    });
+  }
+</script>
+
 </body>
 </html>
